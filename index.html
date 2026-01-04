@@ -265,7 +265,8 @@
 
     <script>
         const GIF_CARDS = "https://i.postimg.cc/qBjFc713/cards.gif";
-        const BANDEIRA_HD = "https://images.alphacoders.com/133/1339665.png";
+        // Atualizado para o GIF solicitado
+        const BANDEIRA_GIF = "https://i.postimg.cc/qBjFc713/cards.gif"; 
         const FIREBASE_URL = "https://egito-ncrp-default-rtdb.firebaseio.com/membros.json";
         
         let db = [];
@@ -425,12 +426,11 @@
             showView('dashboard');
         }
 
-        // --- FUNÇÃO CORRIGIDA PARA EXIBIR TEXTO CORRIDO NO DISCORD ---
         async function enviarComprovante(r) {
             const url = localStorage.getItem('eg_webhook_fotos');
             if(!url) return alert("Erro: Webhook não configurado!");
 
-            // Conteúdo formatado como texto corrido na description
+            // Texto atualizado (removido o título redundante da bandeira)
             const corpoMensagem = 
 ` COMPROVANTE DE RECRUTAMENTO EG EGITO NCRP 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ **${r.nick.toUpperCase()}** ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -448,8 +448,7 @@
 
  LINK DO COMPROVANTE
  [Clique aqui para ver o comprovante](${r.img})
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-##  BANDEIRA DO EGITO EM FULL HD`;
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
 
             const embed = {
                 username: "EG EGITO NCRP",
@@ -457,7 +456,7 @@
                 embeds: [{
                     description: corpoMensagem,
                     color: 16760868,
-                    image: { url: BANDEIRA_HD },
+                    image: { url: BANDEIRA_GIF }, // GIF adicionado aqui
                     thumbnail: { url: r.img },
                     footer: { 
                         text: `🔥 EG Egito NCRP | Registrado por ${userLogado.nick} | 📅 ${r.data || new Date().toLocaleString('pt-BR')}` 
@@ -478,7 +477,6 @@
             const url = localStorage.getItem('eg_webhook_lista');
             if(!url) return alert("Erro: Webhook ausente!");
             
-            // Ordena e formata a lista de membros
             let listaTexto = db.map(m => `> 🇪🇬 **${m.nick}** | ID: \`${m.pass}\` | ${m.cargo}`).join('\n');
             
             const embed = {
@@ -488,7 +486,7 @@
                     title: "🦅 LISTA DE EFETIVO ATUALIZADA",
                     description: `**TOTAL DE MEMBROS:** \`${db.length}\`\n\n${listaTexto}`,
                     color: 16760868,
-                    image: { url: BANDEIRA_HD }
+                    image: { url: BANDEIRA_GIF } // GIF adicionado aqui
                 }]
             };
             

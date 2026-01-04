@@ -24,7 +24,6 @@
             overflow-x: hidden;
         }
 
-        /* Background Geral */
         .bg-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -34,7 +33,6 @@
             filter: grayscale(100%);
         }
 
-        /* Estilização Premium dos Cards com GIF */
         .gold-card {
             background: var(--glass);
             border: 1px solid rgba(251, 191, 36, 0.3);
@@ -44,7 +42,6 @@
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        /* GIF nos cards do Dashboard e Histórico */
         .card-with-gif::before {
             content: "";
             position: absolute;
@@ -56,20 +53,14 @@
             pointer-events: none;
         }
 
-        .gold-card:hover::before {
-            opacity: 0.15;
-        }
-
+        .gold-card:hover::before { opacity: 0.15; }
         .gold-card:hover {
             border-color: var(--gold);
             transform: translateY(-5px);
             box-shadow: 0 0 25px rgba(251, 191, 36, 0.15);
         }
 
-        .card-content {
-            position: relative;
-            z-index: 1;
-        }
+        .card-content { position: relative; z-index: 1; }
 
         .btn-gold {
             background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
@@ -153,7 +144,6 @@
                     <span class="text-[9px] text-gray-400 border border-white/10 px-2 py-1 rounded">ADD_USER_SQL</span>
                 </div>
             </div>
-
             <div onclick="showView('historico')" class="gold-card card-with-gif rounded-2xl p-6 cursor-pointer group">
                 <div class="card-content">
                     <h3 class="text-yellow-500 font-bold orbitron text-xs mb-1">DATA CENTER</h3>
@@ -161,7 +151,6 @@
                     <span class="text-[9px] text-gray-400 border border-white/10 px-2 py-1 rounded">QUERY_HISTORY</span>
                 </div>
             </div>
-
             <div onclick="showView('config')" class="gold-card card-with-gif rounded-2xl p-6 cursor-pointer group">
                 <div class="card-content">
                     <h3 class="text-yellow-500 font-bold orbitron text-xs mb-1">CONEXÕES</h3>
@@ -169,7 +158,6 @@
                     <span class="text-[9px] text-gray-400 border border-white/10 px-2 py-1 rounded">API_ENDPOINTS</span>
                 </div>
             </div>
-
             <div onclick="showView('planilha')" class="gold-card card-with-gif rounded-2xl p-6 cursor-pointer bg-yellow-500/5">
                 <div class="card-content">
                     <h3 class="text-yellow-500 font-bold orbitron text-xs mb-1">EFETIVO TOTAL</h3>
@@ -221,14 +209,12 @@
 
     <main id="view-historico" class="hidden max-w-4xl mx-auto px-4 animate-view">
         <button onclick="showView('dashboard')" class="text-yellow-500 mb-6 font-bold text-xs uppercase">← Painel</button>
-        
         <div class="gold-card p-6 rounded-2xl mb-6 border border-dashed border-yellow-500/50">
             <h3 class="text-yellow-500 orbitron text-xs mb-4">IMPORTAR DATABASE (EXCEL/CSV)</h3>
             <input type="file" id="upload-excel" accept=".xlsx, .xls, .csv" class="hidden" onchange="importarArquivo(this)">
             <label for="upload-excel" class="btn-gold px-6 py-3 rounded-xl text-xs cursor-pointer inline-block">SELECIONAR ARQUIVO</label>
             <p class="text-[9px] text-gray-500 mt-2">Colunas esperadas: Nick, Passaporte, Cargo, Recrutador</p>
         </div>
-
         <div id="lista-recrutados" class="space-y-4"></div>
     </main>
 
@@ -279,9 +265,9 @@
 
     <script>
         const GIF_CARDS = "https://i.postimg.cc/qBjFc713/cards.gif";
-        const BANDEIRA = "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Flag_of_Egypt.svg/1200px-Flag_of_Egypt.svg.png";
+        // BANDEIRA DO EGITO EM FULL HD PARA O COMPROVANTE
+        const BANDEIRA_HD = "https://images.alphacoders.com/133/1339665.png";
         
-        // URL DO SEU FIREBASE
         const FIREBASE_URL = "https://egito-ncrp-default-rtdb.firebaseio.com/membros.json";
         
         let db = [];
@@ -381,7 +367,6 @@
             `).join('');
         }
 
-        // FUNÇÃO DE UPLOAD DO ARQUIVO
         function importarArquivo(input) {
             const file = input.files[0];
             const reader = new FileReader();
@@ -390,8 +375,7 @@
                 const workbook = XLSX.read(data, {type: 'array'});
                 const sheet = workbook.Sheets[workbook.SheetNames[0]];
                 const json = XLSX.utils.sheet_to_json(sheet);
-
-                if(confirm(`Deseja importar ${json.length} jogadores para o banco global?`)) {
+                if(confirm(`Deseja importar ${json.length} jogadores?`)) {
                     for(let p of json) {
                         const novo = {
                             nick: p.Nick || p.nick || "Sem Nome",
@@ -439,41 +423,63 @@
         function salvarWebhooks() {
             localStorage.setItem('eg_webhook_fotos', document.getElementById('webhook-fotos').value);
             localStorage.setItem('eg_webhook_lista', document.getElementById('webhook-lista').value);
-            alert("SISTEMA: Configurações de API salvas!");
+            alert("SISTEMA: Configurações salvas!");
             showView('dashboard');
         }
 
+        // --- FUNÇÃO EDITADA PARA O COMPROVANTE EXATO ---
         async function enviarComprovante(r) {
             const url = localStorage.getItem('eg_webhook_fotos');
             if(!url) return alert("Erro: Webhook não configurado!");
+
+            // MONTAGEM DO COMPROVANTE EXATAMENTE COMO SOLICITADO
             const embed = {
-                username: "EG EGITO",
+                username: "EG EGITO NCRP",
+                avatar_url: "https://i.postimg.cc/qBjFc713/cards.gif",
                 embeds: [{
-                    title: "📄 NOVO RECRUTAMENTO",
+                    title: "COMPROVANTE DE RECRUTAMENTO EG EGITO NCRP",
+                    description: `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ **${r.nick.toUpperCase()}**\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+                                 `**DADOS DO RECRUTADO**\n` +
+                                 `🏛️ **Nick:** ${r.nick}\n` +
+                                 `🎫 **Passaporte:** #${r.pass}\n` +
+                                 `🎖️ **Cargo:** ${r.cargo}\n\n` +
+                                 `**DADOS DO RECRUTADOR**\n` +
+                                 `🏛️ **Nick:** ${userLogado.nick}\n` +
+                                 `🎫 **Passaporte:** #${userLogado.pass}\n\n` +
+                                 `**TIPO DE PAGAMENTO**\n` +
+                                 `💵 Dinheiro Limpo\n\n` +
+                                 `**LINK DO COMPROVANTE**\n` +
+                                 `[Clique aqui para ver o comprovante](${r.img})\n` +
+                                 `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+                                 `##  BANDEIRA DO EGITO EM FULL HD`,
                     color: 16760868,
                     thumbnail: { url: r.img },
-                    fields: [
-                        { name: "Recrutado", value: `**Nick:** ${r.nick}\n**ID:** #${r.pass}\n**Patente:** ${r.cargo}`, inline: true },
-                        { name: "Responsável", value: `**Nick:** ${userLogado.nick}`, inline: true }
-                    ],
-                    image: { url: GIF_CARDS },
-                    footer: { text: `Egito Gestão • ${r.data}` }
+                    image: { url: BANDEIRA_HD },
+                    footer: { 
+                        text: `🔥 EG Egito NCRP | Registrado por ${userLogado.nick} | 📅 ${r.data}` 
+                    }
                 }]
             };
-            fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(embed) })
-            .then(() => alert("Discord atualizado!")).catch(() => alert("Erro ao enviar."));
+
+            fetch(url, { 
+                method: 'POST', 
+                headers: {'Content-Type': 'application/json'}, 
+                body: JSON.stringify(embed) 
+            })
+            .then(() => alert("COMPROVANTE ENVIADO COM SUCESSO!"))
+            .catch(() => alert("Erro ao conectar com o Discord."));
         }
 
         async function enviarListaDiscord() {
             const url = localStorage.getItem('eg_webhook_lista');
-            if(!url) return alert("Erro: Webhook de lista ausente!");
+            if(!url) return alert("Erro: Webhook ausente!");
             let listaTexto = db.map(m => `> 🇪🇬 **${m.nick}** | ID: \`${m.pass}\` | ${m.cargo}`).join('\n');
             const embed = {
                 embeds: [{
                     title: "🦅 LISTA DE EFETIVO ATUALIZADA",
                     description: `**TOTAL:** \`${db.length}\`\n\n${listaTexto}`,
                     color: 0,
-                    image: { url: GIF_CARDS }
+                    image: { url: BANDEIRA_HD }
                 }]
             };
             fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(embed) })

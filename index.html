@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EG Egito NCRP - Gestão Premium</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --gold: #fbbf24;
+            --gold-dark: #b45309;
+            --glass: rgba(15, 15, 15, 0.9);
+            --gif-url: url('https://i.postimg.cc/qBjFc713/cards.gif');
+        }
+
+        body {
+            background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);
+            color: #e5e7eb;
+            font-family: 'Rajdhani', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Background Geral */
+        .bg-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--gif-url) center/cover no-repeat;
+            opacity: 0.1;
+            z-index: -1;
+            filter: grayscale(100%);
+        }
+
+        /* Estilização Premium dos Cards com GIF */
+        .gold-card {
+            background: var(--glass);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            backdrop-filter: blur(12px);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* GIF nos cards do Dashboard e Histórico */
+        .card-with-gif::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--gif-url) center/cover;
+            opacity: 0.05;
+            transition: opacity 0.4s;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .gold-card:hover::before {
+            opacity: 0.15;
+        }
+
+        .gold-card:hover {
+            border-color: var(--gold);
+            transform: translateY(-5px);
+            box-shadow: 0 0 25px rgba(251, 191, 36, 0.15);
+        }
+
+        .card-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-gold {
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+            color: black;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.3s;
+        }
+
+        .btn-gold:hover {
+            filter: brightness(1.2);
+            box-shadow: 0 0 15px var(--gold);
+        }
+
+        input, select {
+            background: rgba(0,0,0,0.6) !important;
+            border: 1px solid rgba(251, 191, 36, 0.2) !important;
+            color: white !important;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-view { animation: slideUp 0.4s ease-out forwards; }
+        .orbitron { font-family: 'Orbitron', sans-serif; }
+
+        .status-glow {
+            width: 8px; height: 8px;
+            background: #22c55e;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #22c55e;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body onload="inicializarSistema()">
+    <div class="bg-overlay"></div>
+
+    <header id="main-header" class="hidden flex flex-col md:flex-row justify-between items-center mb-8 bg-black/80 p-6 border-b border-yellow-500/30 backdrop-blur-lg">
+        <div class="text-center md:text-left">
+            <h1 class="text-3xl font-bold text-yellow-500 orbitron tracking-tighter">EG EGITO <span class="text-white">NCRP</span></h1>
+            <div class="flex items-center gap-2 justify-center md:justify-start">
+                <span class="status-glow"></span>
+                <p id="user-welcome" class="text-xs text-gray-400 uppercase tracking-widest"></p>
+            </div>
+        </div>
+        <button onclick="logout()" class="mt-4 md:mt-0 border border-red-500/50 text-red-500 hover:bg-red-500 hover:text-white px-8 py-2 rounded-full text-xs font-bold transition-all">LOGOUT</button>
+    </header>
+
+    <main id="view-login" class="max-w-md mx-auto mt-20 p-4">
+        <div class="gold-card card-with-gif rounded-2xl p-8 border-t-4 border-t-yellow-500">
+            <div class="card-content">
+                <div class="text-center mb-8">
+                    <div class="text-5xl mb-4">🇪🇬</div>
+                    <h2 class="text-2xl font-bold text-yellow-500 orbitron">ACESSO RESTRITO</h2>
+                    <p class="text-gray-500 text-[10px] tracking-[0.3em]">SECURE ENCRYPTED TERMINAL</p>
+                </div>
+                <div class="space-y-4">
+                    <input type="text" id="login-nick" placeholder="NICK NAME" class="w-full p-4 rounded-xl focus:outline-none focus:border-yellow-500">
+                    <input type="number" id="login-pass" placeholder="ID PASSAPORTE" class="w-full p-4 rounded-xl focus:outline-none focus:border-yellow-500">
+                    <select id="login-perfil" class="w-full p-4 rounded-xl">
+                        <option value="Responsável">RESPONSÁVEL</option>
+                        <option value="Auxiliar">AUXILIAR</option>
+                        <option value="Farme">RESP. FARME</option>
+                    </select>
+                    <button onclick="login()" class="w-full btn-gold py-4 rounded-xl text-lg shadow-xl">INICIAR SESSÃO</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <main id="view-dashboard" class="hidden max-w-7xl mx-auto px-4 animate-view">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            <div onclick="showView('cadastro')" class="gold-card card-with-gif rounded-2xl p-6 cursor-pointer group">
+                <div class="card-content">
+                    <h3 class="text-yellow-500 font-bold orbitron text-xs mb-1">RECRUTAMENTO</h3>
+                    <p class="text-2xl font-bold text-white mb-2">Novo Membro</p>
+                    <span class="text-[9px] text-gray-400 border border-white/10 px-2 py-1 rounded">ADD_USER_SQL</span>
+                </div>
+            </div>
+
+            <div onclick="showView('historico')" class="gold-card card-with-gif rounded-2xl p-6 cursor-pointer group">
+                <div class="card-content">
+                    <h3 class="text-yellow-500 font-bold orbitron text-xs mb-1">DATA CENTER</h3>
+                    <p class="text-2xl font-bold text-white mb-2">Arquivos</p>
+                    <span class="text-[9px] text-gray-400 border border-white/10 px-2 py-1 rounded">QUERY_HISTORY</span>
+                </div>
+            </div>
+
+            <div onclick="showView('config')" class="gold-card card-with-gif rounded-2xl p-6 cursor-pointer group">
+                <div class="card-content">
+                    <h3 class="text-yellow-500 font-bold orbitron text-xs mb-1">CONEXÕES</h3>
+                    <p class="text-2xl font-bold text-white mb-2">Webhooks</p>
+                    <span class="text-[9px] text-gray-400 border border-white/10 px-2 py-1 rounded">API_ENDPOINTS</span>
+                </div>
+            </div>
+
+            <div onclick="showView('planilha')" class="gold-card card-with-gif rounded-2xl p-6 cursor-pointer bg-yellow-500/5">
+                <div class="card-content">
+                    <h3 class="text-yellow-500 font-bold orbitron text-xs mb-1">EFETIVO TOTAL</h3>
+                    <p id="count-membros" class="text-2xl font-bold text-white mb-2">0 Membros</p>
+                    <span class="text-[9px] text-yellow-500 animate-pulse font-bold">ABRIR LISTA OPERACIONAL</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="gold-card rounded-3xl p-8 mb-10">
+            <h2 class="text-xl font-bold text-white orbitron mb-8 flex items-center gap-4">
+                <span class="w-12 h-[2px] bg-yellow-500"></span> ANALYTICS EGITO
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-8" id="stats-container"></div>
+        </div>
+    </main>
+
+    <main id="view-cadastro" class="hidden max-w-2xl mx-auto px-4 animate-view">
+        <button onclick="showView('dashboard')" class="text-yellow-500 mb-6 flex items-center gap-2 text-xs font-bold uppercase tracking-widest">
+            ← Voltar ao Terminal
+        </button>
+        <div class="gold-card p-8 rounded-2xl border-l-4 border-l-yellow-500">
+            <form id="form-recrutamento" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-[10px] text-gray-400 uppercase tracking-widest">Nome do Recruta</label>
+                        <input type="text" id="rec-nick" placeholder="Nome_Sobrenome" required class="w-full p-4 rounded-xl">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] text-gray-400 uppercase tracking-widest">ID Passaporte</label>
+                        <input type="number" id="rec-pass" placeholder="0000" required class="w-full p-4 rounded-xl">
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-[10px] text-gray-400 uppercase tracking-widest">Patente</label>
+                    <select id="rec-cargo" class="w-full p-4 rounded-xl">
+                        <option value="「ᴄʀɪᴀ」">「ᴄʀɪᴀ」</option>
+                        <option value="「equipe farme」">「equipe farme」</option>
+                    </select>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-[10px] text-gray-400 uppercase tracking-widest">Link da Imagem (Provas)</label>
+                    <input type="url" id="rec-img" value="https://i.postimg.cc/qBjFc713/cards.gif" required class="w-full p-4 rounded-xl">
+                </div>
+                <button type="submit" class="w-full btn-gold py-5 rounded-xl text-lg mt-4">FINALIZAR PROTOCOLO</button>
+            </form>
+        </div>
+    </main>
+
+    <main id="view-historico" class="hidden max-w-4xl mx-auto px-4 animate-view">
+        <button onclick="showView('dashboard')" class="text-yellow-500 mb-6 font-bold text-xs uppercase">← Painel</button>
+        <div id="lista-recrutados" class="space-y-4"></div>
+    </main>
+
+    <main id="view-planilha" class="hidden max-w-7xl mx-auto px-4 animate-view">
+        <div class="flex justify-between items-center mb-6">
+            <button onclick="showView('dashboard')" class="text-yellow-500 font-bold text-xs uppercase">← Voltar</button>
+            <div class="flex gap-2">
+                <button onclick="baixarExcel()" class="bg-green-600/20 text-green-500 border border-green-600 px-4 py-2 rounded text-xs font-bold">EXCEL</button>
+                <button onclick="enviarListaDiscord()" class="btn-gold px-6 py-2 rounded text-xs font-bold">SYNC DISCORD</button>
+            </div>
+        </div>
+        <div class="gold-card rounded-2xl overflow-hidden shadow-2xl">
+            <div id="titulo-planilha" class="bg-yellow-500 text-black p-4 font-bold orbitron text-center text-xs"></div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm" id="tabela-aprovados">
+                    <thead class="bg-black/80 text-yellow-500 orbitron text-[10px]">
+                        <tr>
+                            <th class="p-5 border-b border-yellow-500/10">MEMBRO</th>
+                            <th class="p-5 border-b border-yellow-500/10">PASSAPORTE</th>
+                            <th class="p-5 border-b border-yellow-500/10">CARGO</th>
+                            <th class="p-5 border-b border-yellow-500/10">RECRUTADOR</th>
+                            <th class="p-5 border-b border-yellow-500/10 text-center">AÇÃO</th>
+                        </tr>
+                    </thead>
+                    <tbody id="corpo-tabela" class="divide-y divide-white/5"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <main id="view-config" class="hidden max-w-2xl mx-auto px-4 animate-view">
+        <button onclick="showView('dashboard')" class="text-yellow-500 mb-6 font-bold text-xs">← Voltar</button>
+        <div class="gold-card p-8 rounded-2xl">
+            <h2 class="text-xl font-bold text-yellow-500 orbitron mb-8 text-center uppercase">Webhooks de Integração</h2>
+            <div class="space-y-6">
+                <div>
+                    <label class="text-[10px] text-gray-500 uppercase font-bold ml-1">Webhook de Provas (GIF/IMG)</label>
+                    <input type="text" id="webhook-fotos" class="w-full p-4 rounded-xl mt-2" placeholder="https://discord.com/api/webhooks/...">
+                </div>
+                <div>
+                    <label class="text-[10px] text-gray-500 uppercase font-bold ml-1">Webhook de Lista Oficial</label>
+                    <input type="text" id="webhook-lista" class="w-full p-4 rounded-xl mt-2" placeholder="https://discord.com/api/webhooks/...">
+                </div>
+                <button onclick="salvarWebhooks()" class="w-full btn-gold py-4 rounded-xl font-bold mt-4">SALVAR CONFIGURAÇÕES</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const GIF_CARDS = "https://i.postimg.cc/qBjFc713/cards.gif";
+        const BANDEIRA = "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Flag_of_Egypt.svg/1200px-Flag_of_Egypt.svg.png";
+        
+        let db = JSON.parse(localStorage.getItem('eg_egito_db')) || [];
+        let userLogado = null;
+
+        function inicializarSistema() {
+            const salvo = JSON.parse(localStorage.getItem('eg_egito_remember'));
+            if(salvo) {
+                document.getElementById('login-nick').value = salvo.nick;
+                document.getElementById('login-pass').value = salvo.pass;
+                document.getElementById('login-perfil').value = salvo.perfil;
+            }
+            document.getElementById('webhook-fotos').value = localStorage.getItem('eg_webhook_fotos') || '';
+            document.getElementById('webhook-lista').value = localStorage.getItem('eg_webhook_lista') || '';
+        }
+
+        function login() {
+            const nick = document.getElementById('login-nick').value;
+            const pass = document.getElementById('login-pass').value;
+            const perfil = document.getElementById('login-perfil').value;
+            
+            if(!nick || !pass) return alert("Erro: Identifique-se!");
+            
+            localStorage.setItem('eg_egito_remember', JSON.stringify({nick, pass, perfil}));
+            userLogado = { nick, pass, perfil };
+            
+            document.getElementById('user-welcome').innerText = `${nick} // ${perfil}`;
+            document.getElementById('main-header').classList.remove('hidden');
+            showView('dashboard');
+        }
+
+        function showView(viewName) {
+            document.querySelectorAll('main').forEach(v => v.classList.add('hidden'));
+            const active = document.getElementById(`view-${viewName}`);
+            active.classList.remove('hidden');
+            active.classList.add('animate-view');
+            
+            if(viewName === 'dashboard') updateStats();
+            if(viewName === 'historico') renderHistorico();
+            if(viewName === 'planilha') renderPlanilhaData();
+        }
+
+        function updateStats() {
+            const ativos = db.filter(r => !r.excluido);
+            document.getElementById('count-membros').innerText = `${ativos.length} Membros`;
+            const stats = [
+                { val: ativos.length, lab: 'TOTAL ATIVOS', col: 'text-yellow-500' },
+                { val: ativos.filter(r => r.cargo === '「ᴄʀɪᴀ」').length, lab: 'CRIAS', col: 'text-white' },
+                { val: ativos.filter(r => r.cargo === '「equipe farme」').length, lab: 'FARME', col: 'text-white/60' }
+            ];
+            document.getElementById('stats-container').innerHTML = stats.map(s => `
+                <div class="bg-black/60 p-6 rounded-2xl border border-white/5">
+                    <div class="text-[10px] text-gray-500 font-bold mb-1">${s.lab}</div>
+                    <div class="text-4xl font-bold ${s.col} orbitron">${s.val}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderHistorico() {
+            const container = document.getElementById('lista-recrutados');
+            const data = db.filter(r => !r.excluido).reverse();
+            container.innerHTML = data.map(r => `
+                <div class="gold-card card-with-gif p-5 rounded-2xl flex justify-between items-center">
+                    <div class="card-content flex items-center gap-4">
+                        <img src="${r.img}" class="w-12 h-12 rounded-lg border border-yellow-500/50 object-cover">
+                        <div>
+                            <p class="font-bold text-white orbitron text-sm">${r.nick}</p>
+                            <p class="text-[10px] text-gray-500">ID #${r.pass} • ${r.cargo}</p>
+                        </div>
+                    </div>
+                    <div class="card-content flex gap-2">
+                        <button onclick='enviarComprovante(${JSON.stringify(r)})' class="bg-yellow-500/10 text-yellow-500 px-4 py-2 rounded text-[10px] font-bold">PROVA</button>
+                        <button onclick='excluirMembro(${r.id})' class="bg-red-500/10 text-red-500 px-4 py-2 rounded text-[10px] font-bold">DELETAR</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderPlanilhaData() {
+            document.getElementById('titulo-planilha').innerText = "EFETIVO ESTRUTURAL - EG EGITO";
+            const dados = db.filter(r => !r.excluido);
+            document.getElementById('corpo-tabela').innerHTML = dados.map(r => `
+                <tr class="hover:bg-white/5 transition-colors">
+                    <td class="p-5 font-bold text-white uppercase text-xs">${r.nick}</td>
+                    <td class="p-5 text-yellow-500 font-bold">#${r.pass}</td>
+                    <td class="p-5 text-xs text-gray-400">${r.cargo}</td>
+                    <td class="p-5 text-xs text-gray-500">${r.recrutador}</td>
+                    <td class="p-5 text-center">
+                         <button onclick='excluirMembro(${r.id})' class="text-red-500 opacity-50 hover:opacity-100">X</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function salvarWebhooks() {
+            localStorage.setItem('eg_webhook_fotos', document.getElementById('webhook-fotos').value);
+            localStorage.setItem('eg_webhook_lista', document.getElementById('webhook-lista').value);
+            alert("SISTEMA: Configurações de API salvas!");
+            showView('dashboard');
+        }
+
+        async function enviarComprovante(r) {
+            const url = localStorage.getItem('eg_webhook_fotos');
+            if(!url) return alert("Erro: Webhook não configurado!");
+
+            const embed = {
+                username: "EG EGITO",
+                embeds: [{
+                    title: "📄 NOVO RECRUTAMENTO",
+                    color: 16760868,
+                    thumbnail: { url: r.img },
+                    fields: [
+                        { name: "Recrutado", value: `**Nick:** ${r.nick}\n**ID:** #${r.pass}\n**Patente:** ${r.cargo}`, inline: true },
+                        { name: "Responsável", value: `**Nick:** ${userLogado.nick}`, inline: true }
+                    ],
+                    image: { url: GIF_CARDS },
+                    footer: { text: `Egito Gestão • ${r.data}` }
+                }]
+            };
+            fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(embed) })
+            .then(() => alert("Discord atualizado!")).catch(() => alert("Erro ao enviar."));
+        }
+
+        async function enviarListaDiscord() {
+            const url = localStorage.getItem('eg_webhook_lista');
+            if(!url) return alert("Erro: Webhook de lista ausente!");
+            const membros = db.filter(r => !r.excluido);
+            let listaTexto = membros.map(m => `> 🇪🇬 **${m.nick}** | ID: \`${m.pass}\` | ${m.cargo}`).join('\n');
+            const embed = {
+                embeds: [{
+                    title: "🦅 LISTA DE EFETIVO ATUALIZADA",
+                    description: `**TOTAL:** \`${membros.length}\`\n\n${listaTexto}`,
+                    color: 0,
+                    image: { url: GIF_CARDS }
+                }]
+            };
+            fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(embed) })
+            .then(() => alert("Lista sincronizada!")).catch(() => alert("Erro de conexão."));
+        }
+
+        document.getElementById('form-recrutamento').onsubmit = function(e) {
+            e.preventDefault();
+            db.push({
+                id: Date.now(),
+                nick: document.getElementById('rec-nick').value,
+                pass: document.getElementById('rec-pass').value,
+                cargo: document.getElementById('rec-cargo').value,
+                img: document.getElementById('rec-img').value,
+                recrutador: userLogado.nick,
+                data: new Date().toLocaleString('pt-BR'),
+                excluido: false
+            });
+            localStorage.setItem('eg_egito_db', JSON.stringify(db));
+            alert("Membro Registrado!");
+            showView('dashboard');
+        };
+
+        function excluirMembro(id) {
+            if(confirm("Deletar registro?")) {
+                db = db.filter(r => r.id !== id);
+                localStorage.setItem('eg_egito_db', JSON.stringify(db));
+                location.reload();
+            }
+        }
+
+        function baixarExcel() {
+            const ws = XLSX.utils.json_to_sheet(db.filter(r => !r.excluido));
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "EGITO");
+            XLSX.writeFile(wb, "Efetivo_Egito.xlsx");
+        }
+
+        function logout() { location.reload(); }
+    </script>
+</body>
+</html>

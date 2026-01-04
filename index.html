@@ -265,9 +265,9 @@
 
     <script>
         const GIF_CARDS = "https://i.postimg.cc/qBjFc713/cards.gif";
-        // Atualizado para o GIF solicitado
         const BANDEIRA_GIF = "https://i.postimg.cc/qBjFc713/cards.gif"; 
         const FIREBASE_URL = "https://egito-ncrp-default-rtdb.firebaseio.com/membros.json";
+        const FIREBASE_MSG_URL = "https://egito-ncrp-default-rtdb.firebaseio.com/config/last_msg_id.json";
         
         let db = [];
         let userLogado = null;
@@ -430,7 +430,6 @@
             const url = localStorage.getItem('eg_webhook_fotos');
             if(!url) return alert("Erro: Webhook não configurado!");
 
-            // Texto atualizado (removido o título redundante da bandeira)
             const corpoMensagem = 
 ` COMPROVANTE DE RECRUTAMENTO EG EGITO NCRP 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ **${r.nick.toUpperCase()}** ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -456,7 +455,7 @@
                 embeds: [{
                     description: corpoMensagem,
                     color: 16760868,
-                    image: { url: BANDEIRA_GIF }, // GIF adicionado aqui
+                    image: { url: BANDEIRA_GIF },
                     thumbnail: { url: r.img },
                     footer: { 
                         text: `🔥 EG Egito NCRP | Registrado por ${userLogado.nick} | 📅 ${r.data || new Date().toLocaleString('pt-BR')}` 
@@ -473,30 +472,62 @@
             .catch(() => alert("Erro ao conectar com o Discord."));
         }
 
+        // --- FUNÇÃO DE LISTA ATUALIZADA PARA RECONHECER MENSAGEM ATIVA ---
         async function enviarListaDiscord() {
             const url = localStorage.getItem('eg_webhook_lista');
             if(!url) return alert("Erro: Webhook ausente!");
-            
+
+            // 1. Tentar buscar o ID da última mensagem no Firebase
+            let lastMsgId = null;
+            try {
+                const resId = await fetch(FIREBASE_MSG_URL);
+                lastMsgId = await resId.json();
+            } catch (e) {}
+
+            // 2. Preparar dados
             let listaTexto = db.map(m => `> 🇪🇬 **${m.nick}** | ID: \`${m.pass}\` | ${m.cargo}`).join('\n');
             
-            const embed = {
+            const embedData = {
                 username: "EG EGITO NCRP",
                 avatar_url: GIF_CARDS,
                 embeds: [{
                     title: "🦅 LISTA DE EFETIVO ATUALIZADA",
                     description: `**TOTAL DE MEMBROS:** \`${db.length}\`\n\n${listaTexto}`,
                     color: 16760868,
-                    image:cards.gif
+                    image: { url: BANDEIRA_GIF }
                 }]
             };
-            
-            fetch(url, { 
-                method: 'POST', 
-                headers: {'Content-Type': 'application/json'}, 
-                body: JSON.stringify(embed) 
-            })
-            .then(() => alert("Lista sincronizada com o Discord!"))
-            .catch(() => alert("Erro de conexão."));
+
+            // 3. Decidir se faz PATCH (Editar) ou POST (Criar)
+            let endpoint = lastMsgId ? `${url}/messages/${lastMsgId}` : `${url}?wait=true`;
+            let metodo = lastMsgId ? 'PATCH' : 'POST';
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: metodo,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(embedData)
+                });
+
+                if (response.ok) {
+                    if (!lastMsgId) {
+                        // Se for uma nova mensagem, salva o ID que o Discord retornou
+                        const data = await response.json();
+                        await fetch(FIREBASE_MSG_URL, { method: 'PUT', body: JSON.stringify(data.id) });
+                        alert("LISTA CRIADA E SINCRONIZADA!");
+                    } else {
+                        alert("LISTA ATUALIZADA NO DISCORD!");
+                    }
+                } else if (response.status === 404) {
+                    // Se a mensagem foi apagada no Discord, deleta o ID do banco e tenta de novo como POST
+                    await fetch(FIREBASE_MSG_URL, { method: 'DELETE' });
+                    return enviarListaDiscord();
+                } else {
+                    alert("Erro ao sincronizar. Verifique o Webhook.");
+                }
+            } catch (error) {
+                alert("Erro de conexão.");
+            }
         }
 
         function baixarExcel() {

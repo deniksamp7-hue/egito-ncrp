@@ -265,9 +265,7 @@
 
     <script>
         const GIF_CARDS = "https://i.postimg.cc/qBjFc713/cards.gif";
-        // BANDEIRA DO EGITO EM FULL HD PARA O COMPROVANTE
         const BANDEIRA_HD = "https://images.alphacoders.com/133/1339665.png";
-        
         const FIREBASE_URL = "https://egito-ncrp-default-rtdb.firebaseio.com/membros.json";
         
         let db = [];
@@ -427,36 +425,42 @@
             showView('dashboard');
         }
 
-        // --- FUNÇÃO EDITADA PARA O COMPROVANTE EXATO ---
+        // --- FUNÇÃO CORRIGIDA PARA EXIBIR TEXTO CORRIDO NO DISCORD ---
         async function enviarComprovante(r) {
             const url = localStorage.getItem('eg_webhook_fotos');
             if(!url) return alert("Erro: Webhook não configurado!");
 
-            // MONTAGEM DO COMPROVANTE EXATAMENTE COMO SOLICITADO
+            // Conteúdo formatado como texto corrido na description
+            const corpoMensagem = 
+` COMPROVANTE DE RECRUTAMENTO EG EGITO NCRP 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ **${r.nick.toUpperCase()}** ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ DADOS DO RECRUTADO
+🏛️ Nick: ${r.nick}
+🎫 Passaporte: #${r.pass}
+🎖️ Cargo: ${r.cargo}
+
+ DADOS DO RECRUTADOR
+🏛️ Nick: ${userLogado.nick}
+🎫 Passaporte: #${userLogado.pass}
+
+ TIPO DE PAGAMENTO
+💵 Dinheiro Limpo
+
+ LINK DO COMPROVANTE
+ [Clique aqui para ver o comprovante](${r.img})
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+##  BANDEIRA DO EGITO EM FULL HD`;
+
             const embed = {
                 username: "EG EGITO NCRP",
-                avatar_url: "https://i.postimg.cc/qBjFc713/cards.gif",
+                avatar_url: GIF_CARDS,
                 embeds: [{
-                    title: "COMPROVANTE DE RECRUTAMENTO EG EGITO NCRP",
-                    description: `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ **${r.nick.toUpperCase()}**\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-                                 `**DADOS DO RECRUTADO**\n` +
-                                 `🏛️ **Nick:** ${r.nick}\n` +
-                                 `🎫 **Passaporte:** #${r.pass}\n` +
-                                 `🎖️ **Cargo:** ${r.cargo}\n\n` +
-                                 `**DADOS DO RECRUTADOR**\n` +
-                                 `🏛️ **Nick:** ${userLogado.nick}\n` +
-                                 `🎫 **Passaporte:** #${userLogado.pass}\n\n` +
-                                 `**TIPO DE PAGAMENTO**\n` +
-                                 `💵 Dinheiro Limpo\n\n` +
-                                 `**LINK DO COMPROVANTE**\n` +
-                                 `[Clique aqui para ver o comprovante](${r.img})\n` +
-                                 `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-                                 `##  BANDEIRA DO EGITO EM FULL HD`,
+                    description: corpoMensagem,
                     color: 16760868,
-                    thumbnail: { url: r.img },
                     image: { url: BANDEIRA_HD },
+                    thumbnail: { url: r.img },
                     footer: { 
-                        text: `🔥 EG Egito NCRP | Registrado por ${userLogado.nick} | 📅 ${r.data}` 
+                        text: `🔥 EG Egito NCRP | Registrado por ${userLogado.nick} | 📅 ${r.data || new Date().toLocaleString('pt-BR')}` 
                     }
                 }]
             };
@@ -473,17 +477,28 @@
         async function enviarListaDiscord() {
             const url = localStorage.getItem('eg_webhook_lista');
             if(!url) return alert("Erro: Webhook ausente!");
+            
+            // Ordena e formata a lista de membros
             let listaTexto = db.map(m => `> 🇪🇬 **${m.nick}** | ID: \`${m.pass}\` | ${m.cargo}`).join('\n');
+            
             const embed = {
+                username: "EG EGITO NCRP",
+                avatar_url: GIF_CARDS,
                 embeds: [{
                     title: "🦅 LISTA DE EFETIVO ATUALIZADA",
-                    description: `**TOTAL:** \`${db.length}\`\n\n${listaTexto}`,
-                    color: 0,
+                    description: `**TOTAL DE MEMBROS:** \`${db.length}\`\n\n${listaTexto}`,
+                    color: 16760868,
                     image: { url: BANDEIRA_HD }
                 }]
             };
-            fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(embed) })
-            .then(() => alert("Lista sincronizada!")).catch(() => alert("Erro de conexão."));
+            
+            fetch(url, { 
+                method: 'POST', 
+                headers: {'Content-Type': 'application/json'}, 
+                body: JSON.stringify(embed) 
+            })
+            .then(() => alert("Lista sincronizada com o Discord!"))
+            .catch(() => alert("Erro de conexão."));
         }
 
         function baixarExcel() {

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EG Egito NCRP - Gestão Premium</title>
+    <title>Egito NCRP - Gestão Premium</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
@@ -128,8 +128,9 @@
                         <option value="Responsável">RESPONSÁVEL</option>
                         <option value="Auxiliar">AUXILIAR</option>
                         <option value="Farme">RESP. FARME</option>
+                        <optio value="Planilha">Planilha</optio>
                     </select>
-                    <button onclick="login()" class="w-full btn-gold py-4 rounded-xl text-lg shadow-xl">INICIAR SESSÃO</button>
+                    <button onclick="login()" class="w-full btn-gold py-4 rounded-xl text-lg shadow-xl">REALIZAR LOGIN</button>
                 </div>
             </div>
         </div>
@@ -139,30 +140,30 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
             <div onclick="showView('cadastro')" class="gold-card card-with-gif rounded-2xl p-6 cursor-pointer group">
                 <div class="card-content">
-                    <h3 class="text-yellow-500 font-bold orbitron text-xs mb-1">RECRUTAMENTO</h3>
+                    <h3 class="text-yellow-500 font-bold orbitron text-xs mb-1">CADASTRAR MEMBRO</h3>
                     <p class="text-2xl font-bold text-white mb-2">Novo Membro</p>
-                    <span class="text-[9px] text-gray-400 border border-white/10 px-2 py-1 rounded">ADD_USER_SQL</span>
+                    <span class="text-[9px] text-gray-400 border border-white/10 px-2 py-1 rounded">CADASTRAR MEMBRO</span>
                 </div>
             </div>
             <div onclick="showView('historico')" class="gold-card card-with-gif rounded-2xl p-6 cursor-pointer group">
                 <div class="card-content">
-                    <h3 class="text-yellow-500 font-bold orbitron text-xs mb-1">DATA CENTER</h3>
-                    <p class="text-2xl font-bold text-white mb-2">Arquivos</p>
-                    <span class="text-[9px] text-gray-400 border border-white/10 px-2 py-1 rounded">QUERY_HISTORY</span>
+                    <h3 class="text-yellow-500 font-bold orbitron text-xs mb-1">HISTORICO COMPROVANTES</h3>
+                    <p class="text-2xl font-bold text-white mb-2">COMPROVANTES</p>
+                    <span class="text-[9px] text-gray-400 border border-white/10 px-2 py-1 rounded">TROPA DO EGITO</span>
                 </div>
             </div>
             <div onclick="showView('config')" class="gold-card card-with-gif rounded-2xl p-6 cursor-pointer group">
                 <div class="card-content">
-                    <h3 class="text-yellow-500 font-bold orbitron text-xs mb-1">CONEXÕES</h3>
+                    <h3 class="text-yellow-500 font-bold orbitron text-xs mb-1">CONFIG DISCORD</h3>
                     <p class="text-2xl font-bold text-white mb-2">Webhooks</p>
-                    <span class="text-[9px] text-gray-400 border border-white/10 px-2 py-1 rounded">API_ENDPOINTS</span>
+                    <span class="text-[9px] text-gray-400 border border-white/10 px-2 py-1 rounded">CONFIG DISCORD</span>
                 </div>
             </div>
             <div onclick="showView('planilha')" class="gold-card card-with-gif rounded-2xl p-6 cursor-pointer bg-yellow-500/5">
                 <div class="card-content">
-                    <h3 class="text-yellow-500 font-bold orbitron text-xs mb-1">EFETIVO TOTAL</h3>
+                    <h3 class="text-yellow-500 font-bold orbitron text-xs mb-1">LISTA DE APROADOS</h3>
                     <p id="count-membros" class="text-2xl font-bold text-white mb-2">0 Membros</p>
-                    <span class="text-[9px] text-yellow-500 animate-pulse font-bold">ABRIR LISTA OPERACIONAL</span>
+                    <span class="text-[9px] text-yellow-500 animate-pulse font-bold">ABRIR LISTA DE APROVADOS</span>
                 </div>
             </div>
         </div>
@@ -207,9 +208,9 @@
                 </div>
                 <div class="space-y-2">
                     <label class="text-[10px] text-gray-400 uppercase tracking-widest">Link da Imagem (Provas)</label>
-                    <input type="url" id="rec-img" value="https://i.postimg.cc/qBjFc713/cards.gif" required class="w-full p-4 rounded-xl">
+                    <input type="url" id="rec-img" value="" required class="w-full p-4 rounded-xl">
                 </div>
-                <button type="submit" class="w-full btn-gold py-5 rounded-xl text-lg mt-4">FINALIZAR PROTOCOLO</button>
+                <button type="submit" class="w-full btn-gold py-5 rounded-xl text-lg mt-4">REALIZAR CADASTRO</button>
             </form>
         </div>
     </main>
@@ -230,7 +231,7 @@
             <button onclick="showView('dashboard')" class="text-yellow-500 font-bold text-xs uppercase">← Voltar</button>
             <div class="flex gap-2">
                 <button onclick="baixarExcel()" class="bg-green-600/20 text-green-500 border border-green-600 px-4 py-2 rounded text-xs font-bold">EXCEL</button>
-                <button onclick="enviarListaDiscord()" class="btn-gold px-6 py-2 rounded text-xs font-bold">SYNC DISCORD</button>
+                <button onclick="enviarListaDiscord()" class="btn-gold px-6 py-2 rounded text-xs font-bold">ENVIAR/ATALIZAR LISTA</button>
             </div>
         </div>
         <div class="gold-card rounded-2xl overflow-hidden shadow-2xl">
@@ -548,3 +549,4 @@
     </script>
 </body>
 </html>
+

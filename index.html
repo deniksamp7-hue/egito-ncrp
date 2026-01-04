@@ -221,6 +221,14 @@
 
     <main id="view-historico" class="hidden max-w-4xl mx-auto px-4 animate-view">
         <button onclick="showView('dashboard')" class="text-yellow-500 mb-6 font-bold text-xs uppercase">← Painel</button>
+        
+        <div class="gold-card p-6 rounded-2xl mb-6 border border-dashed border-yellow-500/50">
+            <h3 class="text-yellow-500 orbitron text-xs mb-4">IMPORTAR DATABASE (EXCEL/CSV)</h3>
+            <input type="file" id="upload-excel" accept=".xlsx, .xls, .csv" class="hidden" onchange="importarArquivo(this)">
+            <label for="upload-excel" class="btn-gold px-6 py-3 rounded-xl text-xs cursor-pointer inline-block">SELECIONAR ARQUIVO</label>
+            <p class="text-[9px] text-gray-500 mt-2">Colunas esperadas: Nick, Passaporte, Cargo, Recrutador</p>
+        </div>
+
         <div id="lista-recrutados" class="space-y-4"></div>
     </main>
 
@@ -273,10 +281,13 @@
         const GIF_CARDS = "https://i.postimg.cc/qBjFc713/cards.gif";
         const BANDEIRA = "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Flag_of_Egypt.svg/1200px-Flag_of_Egypt.svg.png";
         
-        let db = JSON.parse(localStorage.getItem('eg_egito_db')) || [];
+        // URL DO SEU FIREBASE
+        const FIREBASE_URL = "https://egito-ncrp-default-rtdb.firebaseio.com/membros.json";
+        
+        let db = [];
         let userLogado = null;
 
-        function inicializarSistema() {
+        async function inicializarSistema() {
             const salvo = JSON.parse(localStorage.getItem('eg_egito_remember'));
             if(salvo) {
                 document.getElementById('login-nick').value = salvo.nick;
@@ -285,18 +296,25 @@
             }
             document.getElementById('webhook-fotos').value = localStorage.getItem('eg_webhook_fotos') || '';
             document.getElementById('webhook-lista').value = localStorage.getItem('eg_webhook_lista') || '';
+            await carregarDadosGlobais();
+        }
+
+        async function carregarDadosGlobais() {
+            try {
+                const response = await fetch(FIREBASE_URL);
+                const data = await response.json();
+                db = data ? Object.keys(data).map(key => ({...data[key], firebaseId: key})) : [];
+                updateStats();
+            } catch (e) { console.error("Erro ao carregar banco!"); }
         }
 
         function login() {
             const nick = document.getElementById('login-nick').value;
             const pass = document.getElementById('login-pass').value;
             const perfil = document.getElementById('login-perfil').value;
-            
             if(!nick || !pass) return alert("Erro: Identifique-se!");
-            
             localStorage.setItem('eg_egito_remember', JSON.stringify({nick, pass, perfil}));
             userLogado = { nick, pass, perfil };
-            
             document.getElementById('user-welcome').innerText = `${nick} // ${perfil}`;
             document.getElementById('main-header').classList.remove('hidden');
             showView('dashboard');
@@ -307,7 +325,6 @@
             const active = document.getElementById(`view-${viewName}`);
             active.classList.remove('hidden');
             active.classList.add('animate-view');
-            
             if(viewName === 'dashboard') updateStats();
             if(viewName === 'historico') renderHistorico();
             if(viewName === 'planilha') renderPlanilhaData();
@@ -331,11 +348,11 @@
 
         function renderHistorico() {
             const container = document.getElementById('lista-recrutados');
-            const data = db.filter(r => !r.excluido).reverse();
+            const data = [...db].reverse();
             container.innerHTML = data.map(r => `
                 <div class="gold-card card-with-gif p-5 rounded-2xl flex justify-between items-center">
                     <div class="card-content flex items-center gap-4">
-                        <img src="${r.img}" class="w-12 h-12 rounded-lg border border-yellow-500/50 object-cover">
+                        <img src="${r.img || GIF_CARDS}" class="w-12 h-12 rounded-lg border border-yellow-500/50 object-cover">
                         <div>
                             <p class="font-bold text-white orbitron text-sm">${r.nick}</p>
                             <p class="text-[10px] text-gray-500">ID #${r.pass} • ${r.cargo}</p>
@@ -343,7 +360,7 @@
                     </div>
                     <div class="card-content flex gap-2">
                         <button onclick='enviarComprovante(${JSON.stringify(r)})' class="bg-yellow-500/10 text-yellow-500 px-4 py-2 rounded text-[10px] font-bold">PROVA</button>
-                        <button onclick='excluirMembro(${r.id})' class="bg-red-500/10 text-red-500 px-4 py-2 rounded text-[10px] font-bold">DELETAR</button>
+                        <button onclick="excluirMembro('${r.firebaseId}')" class="bg-red-500/10 text-red-500 px-4 py-2 rounded text-[10px] font-bold">DELETAR</button>
                     </div>
                 </div>
             `).join('');
@@ -351,18 +368,72 @@
 
         function renderPlanilhaData() {
             document.getElementById('titulo-planilha').innerText = "EFETIVO ESTRUTURAL - EG EGITO";
-            const dados = db.filter(r => !r.excluido);
-            document.getElementById('corpo-tabela').innerHTML = dados.map(r => `
+            document.getElementById('corpo-tabela').innerHTML = db.map(r => `
                 <tr class="hover:bg-white/5 transition-colors">
                     <td class="p-5 font-bold text-white uppercase text-xs">${r.nick}</td>
                     <td class="p-5 text-yellow-500 font-bold">#${r.pass}</td>
                     <td class="p-5 text-xs text-gray-400">${r.cargo}</td>
                     <td class="p-5 text-xs text-gray-500">${r.recrutador}</td>
                     <td class="p-5 text-center">
-                         <button onclick='excluirMembro(${r.id})' class="text-red-500 opacity-50 hover:opacity-100">X</button>
+                         <button onclick="excluirMembro('${r.firebaseId}')" class="text-red-500 opacity-50 hover:opacity-100">X</button>
                     </td>
                 </tr>
             `).join('');
+        }
+
+        // FUNÇÃO DE UPLOAD DO ARQUIVO
+        function importarArquivo(input) {
+            const file = input.files[0];
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const json = XLSX.utils.sheet_to_json(sheet);
+
+                if(confirm(`Deseja importar ${json.length} jogadores para o banco global?`)) {
+                    for(let p of json) {
+                        const novo = {
+                            nick: p.Nick || p.nick || "Sem Nome",
+                            pass: p.Passaporte || p.pass || 0,
+                            cargo: p.Cargo || p.cargo || "「ᴄʀɪᴀ」",
+                            recrutador: p.Recrutador || "Sistema",
+                            img: GIF_CARDS,
+                            data: p.Data || new Date().toLocaleString('pt-BR')
+                        };
+                        await fetch(FIREBASE_URL, { method: 'POST', body: JSON.stringify(novo) });
+                    }
+                    alert("Importação concluída!");
+                    await carregarDadosGlobais();
+                    showView('dashboard');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        document.getElementById('form-recrutamento').onsubmit = async function(e) {
+            e.preventDefault();
+            const novo = {
+                nick: document.getElementById('rec-nick').value,
+                pass: document.getElementById('rec-pass').value,
+                cargo: document.getElementById('rec-cargo').value,
+                img: document.getElementById('rec-img').value,
+                recrutador: userLogado.nick,
+                data: new Date().toLocaleString('pt-BR')
+            };
+            await fetch(FIREBASE_URL, { method: 'POST', body: JSON.stringify(novo) });
+            alert("Membro Registrado Globalmente!");
+            await carregarDadosGlobais();
+            showView('dashboard');
+        };
+
+        async function excluirMembro(firebaseId) {
+            if(confirm("Deletar registro do banco global?")) {
+                await fetch(`https://egito-ncrp-default-rtdb.firebaseio.com/membros/${firebaseId}.json`, { method: 'DELETE' });
+                await carregarDadosGlobais();
+                renderHistorico();
+                renderPlanilhaData();
+            }
         }
 
         function salvarWebhooks() {
@@ -375,7 +446,6 @@
         async function enviarComprovante(r) {
             const url = localStorage.getItem('eg_webhook_fotos');
             if(!url) return alert("Erro: Webhook não configurado!");
-
             const embed = {
                 username: "EG EGITO",
                 embeds: [{
@@ -397,12 +467,11 @@
         async function enviarListaDiscord() {
             const url = localStorage.getItem('eg_webhook_lista');
             if(!url) return alert("Erro: Webhook de lista ausente!");
-            const membros = db.filter(r => !r.excluido);
-            let listaTexto = membros.map(m => `> 🇪🇬 **${m.nick}** | ID: \`${m.pass}\` | ${m.cargo}`).join('\n');
+            let listaTexto = db.map(m => `> 🇪🇬 **${m.nick}** | ID: \`${m.pass}\` | ${m.cargo}`).join('\n');
             const embed = {
                 embeds: [{
                     title: "🦅 LISTA DE EFETIVO ATUALIZADA",
-                    description: `**TOTAL:** \`${membros.length}\`\n\n${listaTexto}`,
+                    description: `**TOTAL:** \`${db.length}\`\n\n${listaTexto}`,
                     color: 0,
                     image: { url: GIF_CARDS }
                 }]
@@ -411,36 +480,11 @@
             .then(() => alert("Lista sincronizada!")).catch(() => alert("Erro de conexão."));
         }
 
-        document.getElementById('form-recrutamento').onsubmit = function(e) {
-            e.preventDefault();
-            db.push({
-                id: Date.now(),
-                nick: document.getElementById('rec-nick').value,
-                pass: document.getElementById('rec-pass').value,
-                cargo: document.getElementById('rec-cargo').value,
-                img: document.getElementById('rec-img').value,
-                recrutador: userLogado.nick,
-                data: new Date().toLocaleString('pt-BR'),
-                excluido: false
-            });
-            localStorage.setItem('eg_egito_db', JSON.stringify(db));
-            alert("Membro Registrado!");
-            showView('dashboard');
-        };
-
-        function excluirMembro(id) {
-            if(confirm("Deletar registro?")) {
-                db = db.filter(r => r.id !== id);
-                localStorage.setItem('eg_egito_db', JSON.stringify(db));
-                location.reload();
-            }
-        }
-
         function baixarExcel() {
-            const ws = XLSX.utils.json_to_sheet(db.filter(r => !r.excluido));
+            const ws = XLSX.utils.json_to_sheet(db);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "EGITO");
-            XLSX.writeFile(wb, "Efetivo_Egito.xlsx");
+            XLSX.writeFile(wb, "Efetivo_Egito_Global.xlsx");
         }
 
         function logout() { location.reload(); }

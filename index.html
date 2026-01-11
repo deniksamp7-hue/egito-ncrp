@@ -128,7 +128,7 @@
                         <option value="Responsável">RESPONSÁVEL</option>
                         <option value="Auxiliar">AUXILIAR</option>
                         <option value="Farme">RESP. FARME</option>
-                        <optio value="Planilha">Planilha</optio>
+                        <option value="Planilha">Planilha</option>
                     </select>
                     <button onclick="login()" class="w-full btn-gold py-4 rounded-xl text-lg shadow-xl">REALIZAR LOGIN</button>
                 </div>
@@ -168,6 +168,22 @@
             </div>
         </div>
         
+        <div class="gold-card rounded-3xl p-8 mb-10 border-t-4 border-t-green-500">
+            <h2 class="text-xl font-bold text-white orbitron mb-8 flex items-center gap-4">
+                <span class="w-12 h-[2px] bg-green-500"></span> FINANCEIRO RECRUTAMENTO (FAC)
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                <div class="bg-black/60 p-6 rounded-2xl border border-white/5">
+                    <div class="text-[10px] text-gray-500 font-bold mb-1 uppercase">Total Dinheiro Limpo</div>
+                    <div id="total-limpo" class="text-4xl font-bold text-green-500 orbitron">R$ 0,00</div>
+                </div>
+                <div class="bg-black/60 p-6 rounded-2xl border border-white/5">
+                    <div class="text-[10px] text-gray-500 font-bold mb-1 uppercase">Total Dinheiro Sujo</div>
+                    <div id="total-sujo" class="text-4xl font-bold text-red-500 orbitron">R$ 0,00</div>
+                </div>
+            </div>
+        </div>
+
         <div class="gold-card rounded-3xl p-8 mb-10">
             <h2 class="text-xl font-bold text-white orbitron mb-8 flex items-center gap-4">
                 <span class="w-12 h-[2px] bg-yellow-500"></span> ANALYTICS EGITO
@@ -192,6 +208,25 @@
                         <input type="number" id="rec-pass" placeholder="0000" required class="w-full p-4 rounded-xl">
                     </div>
                 </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-yellow-500/5 rounded-xl border border-yellow-500/10">
+                    <div class="space-y-2">
+                        <label class="text-[10px] text-yellow-500 uppercase tracking-widest font-bold">Valor Missão</label>
+                        <input type="number" id="rec-valor-total" placeholder="Ex: 1500000" required class="w-full p-4 rounded-xl">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] text-yellow-500 uppercase tracking-widest font-bold">Comissão Recrutador</label>
+                        <input type="number" id="rec-valor-recrutador" placeholder="Ex: 400000" required class="w-full p-4 rounded-xl">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] text-yellow-500 uppercase tracking-widest font-bold">Tipo</label>
+                        <select id="rec-tipo-dinheiro" class="w-full p-4 rounded-xl">
+                            <option value="limpo">DINHEIRO LIMPO</option>
+                            <option value="sujo">DINHEIRO SUJO</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="space-y-2">
                     <label class="text-[10px] text-gray-400 uppercase tracking-widest">Patente</label>
                     <select id="rec-cargo" class="w-full p-4 rounded-xl">
@@ -263,7 +298,7 @@
                     <input type="text" id="webhook-fotos" class="w-full p-4 rounded-xl mt-2" placeholder="https://discord.com/api/webhooks/...">
                 </div>
                 <div>
-                    <label class="text-[10px] text-gray-500 uppercase font-bold ml-1">Webhook de Lista Oficial</label>
+                    <label class="text-[10px] text-gray-400 uppercase font-bold ml-1 font-bold ml-1">Webhook de Lista Oficial</label>
                     <input type="text" id="webhook-lista" class="w-full p-4 rounded-xl mt-2" placeholder="https://discord.com/api/webhooks/...">
                 </div>
                 <button onclick="salvarWebhooks()" class="w-full btn-gold py-4 rounded-xl font-bold mt-4">SALVAR CONFIGURAÇÕES</button>
@@ -298,6 +333,7 @@
                 const data = await response.json();
                 db = data ? Object.keys(data).map(key => ({...data[key], firebaseId: key})) : [];
                 updateStats();
+                calcularFinanceiro();
             } catch (e) { console.error("Erro ao carregar banco!"); }
         }
 
@@ -318,7 +354,10 @@
             const active = document.getElementById(`view-${viewName}`);
             active.classList.remove('hidden');
             active.classList.add('animate-view');
-            if(viewName === 'dashboard') updateStats();
+            if(viewName === 'dashboard') {
+                updateStats();
+                calcularFinanceiro();
+            }
             if(viewName === 'historico') renderHistorico();
             if(viewName === 'planilha') renderPlanilhaData();
         }
@@ -339,6 +378,25 @@
             `).join('');
         }
 
+        function calcularFinanceiro() {
+            let totalLimpo = 0;
+            let totalSujo = 0;
+
+            db.forEach(m => {
+                if(m.valorFac) {
+                    if(m.tipoDinheiro === 'limpo') {
+                        totalLimpo += parseFloat(m.valorFac);
+                    } else {
+                        totalSujo += parseFloat(m.valorFac);
+                    }
+                }
+            });
+
+            const format = (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            document.getElementById('total-limpo').innerText = format(totalLimpo);
+            document.getElementById('total-sujo').innerText = format(totalSujo);
+        }
+
         function renderHistorico() {
             const container = document.getElementById('lista-recrutados');
             const data = [...db].reverse();
@@ -349,6 +407,7 @@
                         <div>
                             <p class="font-bold text-white orbitron text-sm">${r.nick}</p>
                             <p class="text-[10px] text-gray-500">ID #${r.pass} • ${r.cargo}</p>
+                            ${r.valorFac ? `<p class="text-[9px] text-green-500 font-bold">FAC: R$ ${parseFloat(r.valorFac).toLocaleString('pt-BR')} (${r.tipoDinheiro})</p>` : ''}
                         </div>
                     </div>
                     <div class="card-content flex gap-2">
@@ -404,16 +463,26 @@
 
         document.getElementById('form-recrutamento').onsubmit = async function(e) {
             e.preventDefault();
+            
+            const vTotal = parseFloat(document.getElementById('rec-valor-total').value);
+            const vRecrutador = parseFloat(document.getElementById('rec-valor-recrutador').value);
+            const vFac = vTotal - vRecrutador;
+
             const novo = {
                 nick: document.getElementById('rec-nick').value,
                 pass: document.getElementById('rec-pass').value,
                 cargo: document.getElementById('rec-cargo').value,
                 img: document.getElementById('rec-img').value,
+                tipoDinheiro: document.getElementById('rec-tipo-dinheiro').value,
+                valorMissao: vTotal,
+                valorRecrutador: vRecrutador,
+                valorFac: vFac,
                 recrutador: userLogado.nick,
                 data: new Date().toLocaleString('pt-BR')
             };
+
             await fetch(FIREBASE_URL, { method: 'POST', body: JSON.stringify(novo) });
-            alert("Membro Registrado Globalmente!");
+            alert(`Membro Registrado! Valor para Fac: R$ ${vFac.toLocaleString('pt-BR')}`);
             await carregarDadosGlobais();
             showView('dashboard');
         };
@@ -446,12 +515,15 @@
 🎫 Passaporte: #${r.pass}
 🎖️ Cargo: ${r.cargo}
 
+ FINANCEIRO DA MISSÃO
+💰 Valor Total: R$ ${parseFloat(r.valorMissao || 0).toLocaleString('pt-BR')}
+👤 Comissão Recrutador: R$ ${parseFloat(r.valorRecrutador || 0).toLocaleString('pt-BR')}
+🏢 Valor para Fac: R$ ${parseFloat(r.valorFac || 0).toLocaleString('pt-BR')}
+🏷️ Tipo: ${r.tipoDinheiro === 'limpo' ? '💵 Dinheiro Limpo' : '💸 Dinheiro Sujo'}
+
  DADOS DO RECRUTADOR
 🏛️ Nick: ${userLogado.nick}
 🎫 Passaporte: #${userLogado.pass}
-
- TIPO DE PAGAMENTO
-💵 Dinheiro Limpo
 
  LINK DO COMPROVANTE
  [Clique aqui para ver o comprovante](${r.img})
@@ -462,7 +534,7 @@
                 avatar_url: GIF_CARDS,
                 embeds: [{
                     description: corpoMensagem,
-                    color: 16760868,
+                    color: r.tipoDinheiro === 'limpo' ? 3066993 : 15158332,
                     image: { url: BANDEIRA_GIF },
                     thumbnail: { url: r.img },
                     footer: { 
@@ -480,19 +552,16 @@
             .catch(() => alert("Erro ao conectar com o Discord."));
         }
 
-        // --- FUNÇÃO DE LISTA ATUALIZADA PARA RECONHECER MENSAGEM ATIVA ---
         async function enviarListaDiscord() {
             const url = localStorage.getItem('eg_webhook_lista');
             if(!url) return alert("Erro: Webhook ausente!");
 
-            // 1. Tentar buscar o ID da última mensagem no Firebase
             let lastMsgId = null;
             try {
                 const resId = await fetch(FIREBASE_MSG_URL);
                 lastMsgId = await resId.json();
             } catch (e) {}
 
-            // 2. Preparar dados
             let listaTexto = db.map(m => `> 🇪🇬 **${m.nick}** | ID: \`${m.pass}\` | ${m.cargo}`).join('\n');
             
             const embedData = {
@@ -506,7 +575,6 @@
                 }]
             };
 
-            // 3. Decidir se faz PATCH (Editar) ou POST (Criar)
             let endpoint = lastMsgId ? `${url}/messages/${lastMsgId}` : `${url}?wait=true`;
             let metodo = lastMsgId ? 'PATCH' : 'POST';
 
@@ -519,7 +587,6 @@
 
                 if (response.ok) {
                     if (!lastMsgId) {
-                        // Se for uma nova mensagem, salva o ID que o Discord retornou
                         const data = await response.json();
                         await fetch(FIREBASE_MSG_URL, { method: 'PUT', body: JSON.stringify(data.id) });
                         alert("LISTA CRIADA E SINCRONIZADA!");
@@ -527,7 +594,6 @@
                         alert("LISTA ATUALIZADA NO DISCORD!");
                     }
                 } else if (response.status === 404) {
-                    // Se a mensagem foi apagada no Discord, deleta o ID do banco e tenta de novo como POST
                     await fetch(FIREBASE_MSG_URL, { method: 'DELETE' });
                     return enviarListaDiscord();
                 } else {
@@ -549,7 +615,3 @@
     </script>
 </body>
 </html>
-
-
-
-

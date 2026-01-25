@@ -146,9 +146,21 @@
     </style>
 </head>
 <body onload="inicializarSistema()">
+    <audio id="bg-music" loop>
+        <source src="https://cdn.discordapp.com/attachments/1431057945713705091/1465052309179334769/Dallas_beiramar_Prod.Andrade_3.mp3?ex=6977b3c9&is=69766249&hm=05addd2074d35a838fe92ae597d2cdbeead08b6b1c5668376b588087cf7d10eb&" type="audio/mpeg">
+    </audio>
+<header id="main-header" class="hidden flex flex-col md:flex-row justify-between items-center mb-8 bg-black/80 p-6 border-b border-yellow-500/30 backdrop-blur-lg z-50">
+    <div class="flex items-center gap-4">
+        <button onclick="toggleMute()" id="btn-audio" class="border border-yellow-500/50 text-yellow-500 hover:bg-yellow-500 hover:text-white px-4 py-2 rounded-full text-[10px] font-bold transition-all">
+            🔈 MUDO
+        </button>
+        
+        <button onclick="logout()" class="mt-4 md:mt-0 border border-red-500/50 text-red-500 hover:bg-red-500 hover:text-white px-8 py-2 rounded-full text-xs font-bold transition-all">LOGOUT</button>
+    </div>
+</header>
+
     <div class="bg-overlay"></div>
     <div class="bullet-bg" id="bullet-container"></div>
-
     <header id="main-header" class="hidden flex flex-col md:flex-row justify-between items-center mb-8 bg-black/80 p-6 border-b border-yellow-500/30 backdrop-blur-lg z-50">
         <div class="text-center md:text-left">
             <h1 class="text-3xl font-bold text-yellow-500 orbitron tracking-tighter">EG EGITO <span class="text-white">NCRP</span></h1>
@@ -397,12 +409,12 @@
             <h2 class="text-xl font-bold text-yellow-500 orbitron mb-8 text-center uppercase">Webhooks de Integração</h2>
             <div class="space-y-6">
                 <div>
-                    <label class="text-[10px] text-gray-500 uppercase font-bold ml-1">Webhook de Provas (GIF/IMG)</label>
-                    <input type="text" id="webhook-fotos" class="w-full p-4 rounded-xl mt-2" placeholder="URL do Webhook">
+                    <label class="text-[10px] text-gray-500 uppercase font-bold ml-1">Envio de Provas (GIF/IMG)</label>
+                    <input type="text" id="webhook-fotos" class="w-full p-4 rounded-xl mt-2" placeholder="https://discord.com/api/webhooks/1454246068043911291/8VOZwTT_HJj9FfOq_-uJqfEHs7mHHx_4lIaBuIMJGaeedfO-iKfkmpb7zxZkzQZIZve7">
                 </div>
                 <div>
-                    <label class="text-[10px] text-gray-400 uppercase font-bold ml-1">Webhook de Lista Oficial</label>
-                    <input type="text" id="webhook-lista" class="w-full p-4 rounded-xl mt-2" placeholder="URL do Webhook">
+                    <label class="text-[10px] text-gray-400 uppercase font-bold ml-1">Lista Dos Aprovados</label>
+                    <input type="text" id="webhook-lista" class="w-full p-4 rounded-xl mt-2" placeholder="https://discord.com/api/webhooks/1457068029157314792/y6aS0LVYKKzqzVw-FCP-y9Zg_AyIarXM8XOssk0MwTZcSpZPMlOkdDhSpWte1KqKKYjH">
                 </div>
                 <button onclick="salvarWebhooks()" class="w-full btn-gold py-4 rounded-xl font-bold mt-4">SALVAR CONFIGURAÇÕES</button>
             </div>
@@ -421,6 +433,21 @@
         let db = [];
         let financeiroGlobal = { limpo: 169436500, sujo: 4400000 };
         let userLogado = null;
+
+        function toggleMute() {
+    const musica = document.getElementById('bg-music');
+    const btn = document.getElementById('btn-audio');
+    
+    if (musica.paused) {
+        musica.play();
+        btn.innerText = "🔊 TOCANDO";
+        btn.classList.add('bg-yellow-500', 'text-black');
+    } else {
+        musica.pause();
+        btn.innerText = "🔈 MUDO";
+        btn.classList.remove('bg-yellow-500', 'text-black');
+    }
+}
 
         // --- EFEITOS VISUAIS ---
         function createBullets() {
@@ -472,15 +499,21 @@
         }
 
         function login() {
-            const nick = document.getElementById('login-nick').value;
-            const pass = document.getElementById('login-pass').value;
-            const perfil = document.getElementById('login-perfil').value;
-            if(!nick || !pass) return alert("Erro: Identifique-se!");
-            localStorage.setItem('eg_egito_remember', JSON.stringify({nick, pass, perfil}));
-            userLogado = { nick, pass, perfil };
-            document.getElementById('user-welcome').innerText = `${nick} // ${perfil}`;
-            document.getElementById('main-header').classList.remove('hidden');
-            showView('dashboard');
+    const nick = document.getElementById('login-nick').value;
+    const pass = document.getElementById('login-pass').value;
+    const perfil = document.getElementById('login-perfil').value;
+    
+    if(!nick || !pass) return alert("Erro: Identifique-se!");
+
+    // ADICIONE ESTA LINHA ABAIXO PARA TOCAR A MÚSICA
+    document.getElementById('bg-music').play().catch(e => console.log("Aguardando interação para áudio"));
+
+    localStorage.setItem('eg_egito_remember', JSON.stringify({nick, pass, perfil}));
+    userLogado = { nick, pass, perfil };
+    document.getElementById('user-welcome').innerText = `${nick} // ${perfil}`;
+    document.getElementById('main-header').classList.remove('hidden');
+    showView('dashboard');
+
         }
 
         function abrirConfigAdmin() {

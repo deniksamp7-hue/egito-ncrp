@@ -16,12 +16,58 @@
             --gif-url: url('https://i.postimg.cc/qBjFc713/cards.gif');
         }
 
+        /* CURSOR PERSONALIZADO (BALA DE FUZIL) */
+        body, button, a, .gold-card, input, select {
+            cursor: url('https://cdn-icons-png.flaticon.com/32/3024/3024312.png'), auto !important;
+        }
+
         body {
             background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);
             color: #e5e7eb;
             font-family: 'Rajdhani', sans-serif;
             min-height: 100vh;
             overflow-x: hidden;
+        }
+
+        /* EFEITO DE BALAS FLUTUANDO AO FUNDO */
+        .bullet-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .floating-bullet {
+            position: absolute;
+            width: 4px;
+            height: 15px;
+            background: linear-gradient(to bottom, #ffd700, #b45309);
+            border-radius: 2px;
+            opacity: 0.3;
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            from { transform: translateY(-100px) rotate(45deg); }
+            to { transform: translateY(110vh) rotate(45deg); }
+        }
+
+        /* EFEITO DE IMPACTO AO CLICAR */
+        .click-spark {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: var(--gold);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            animation: spark-anim 0.6s ease-out forwards;
+        }
+
+        @keyframes spark-anim {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(4); opacity: 0; box-shadow: 0 0 20px var(--gold); }
         }
 
         .bg-overlay {
@@ -101,8 +147,9 @@
 </head>
 <body onload="inicializarSistema()">
     <div class="bg-overlay"></div>
+    <div class="bullet-bg" id="bullet-container"></div>
 
-    <header id="main-header" class="hidden flex flex-col md:flex-row justify-between items-center mb-8 bg-black/80 p-6 border-b border-yellow-500/30 backdrop-blur-lg">
+    <header id="main-header" class="hidden flex flex-col md:flex-row justify-between items-center mb-8 bg-black/80 p-6 border-b border-yellow-500/30 backdrop-blur-lg z-50">
         <div class="text-center md:text-left">
             <h1 class="text-3xl font-bold text-yellow-500 orbitron tracking-tighter">EG EGITO <span class="text-white">NCRP</span></h1>
             <div class="flex items-center gap-2 justify-center md:justify-start">
@@ -113,7 +160,7 @@
         <button onclick="logout()" class="mt-4 md:mt-0 border border-red-500/50 text-red-500 hover:bg-red-500 hover:text-white px-8 py-2 rounded-full text-xs font-bold transition-all">LOGOUT</button>
     </header>
 
-    <main id="view-login" class="max-w-md mx-auto mt-20 p-4">
+    <main id="view-login" class="max-w-md mx-auto mt-20 p-4 relative z-10">
         <div class="gold-card card-with-gif rounded-2xl p-8 border-t-4 border-t-yellow-500">
             <div class="card-content">
                 <div class="text-center mb-8">
@@ -136,8 +183,8 @@
         </div>
     </main>
 
-    <main id="view-dashboard" class="hidden max-w-7xl mx-auto px-4 animate-view">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+    <main id="view-dashboard" class="hidden max-w-7xl mx-auto px-4 animate-view relative z-10">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">
             <div onclick="showView('cadastro')" class="gold-card card-with-gif rounded-2xl p-6 cursor-pointer group">
                 <div class="card-content">
                     <h3 class="text-yellow-500 font-bold orbitron text-xs mb-1">CADASTRAR MEMBRO</h3>
@@ -159,11 +206,18 @@
                     <span class="text-[9px] text-gray-400 border border-white/10 px-2 py-1 rounded">CONFIG DISCORD</span>
                 </div>
             </div>
-            <div onclick="showView('planilha')" class="gold-card card-with-gif rounded-2xl p-6 cursor-pointer bg-yellow-500/5">
+            <div onclick="showView('planilha')" class="gold-card card-with-gif rounded-2xl p-6 cursor-pointer">
                 <div class="card-content">
                     <h3 class="text-yellow-500 font-bold orbitron text-xs mb-1">LISTA DE APROADOS</h3>
                     <p id="count-membros" class="text-2xl font-bold text-white mb-2">0 Membros</p>
                     <span class="text-[9px] text-yellow-500 animate-pulse font-bold">ABRIR LISTA DE APROVADOS</span>
+                </div>
+            </div>
+            <div onclick="abrirConfigAdmin()" class="gold-card card-with-gif rounded-2xl p-6 cursor-pointer border-red-500/30 bg-red-500/5">
+                <div class="card-content">
+                    <h3 class="text-red-500 font-bold orbitron text-xs mb-1">ÁREA PRIVADA</h3>
+                    <p class="text-2xl font-bold text-white mb-2">CONFIG.ADM</p>
+                    <span class="text-[9px] text-red-500 font-bold">ACESSO RESTRITO 🔒</span>
                 </div>
             </div>
         </div>
@@ -192,7 +246,49 @@
         </div>
     </main>
 
-    <main id="view-cadastro" class="hidden max-w-2xl mx-auto px-4 animate-view">
+    <main id="view-admin" class="hidden max-w-7xl mx-auto px-4 animate-view relative z-10">
+        <div class="flex justify-between items-center mb-6">
+            <button onclick="showView('dashboard')" class="text-yellow-500 font-bold text-xs uppercase">← Voltar ao Terminal</button>
+            <h2 class="text-xl font-bold text-red-500 orbitron">PAINEL ADMINISTRATIVO</h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+            <div class="gold-card p-6 rounded-2xl border-l-4 border-l-green-500">
+                <h3 class="text-white font-bold mb-4 orbitron text-sm">AJUSTAR FINANCEIRO LIMPO</h3>
+                <div class="flex gap-4">
+                    <input type="number" id="edit-limpo" placeholder="Novo valor Total Limpo" class="w-full p-4 rounded-xl">
+                    <button onclick="salvarFinanceiroManual('limpo')" class="btn-gold px-6 rounded-xl">SALVAR</button>
+                </div>
+            </div>
+            <div class="gold-card p-6 rounded-2xl border-l-4 border-l-red-500">
+                <h3 class="text-white font-bold mb-4 orbitron text-sm">AJUSTAR FINANCEIRO SUJO</h3>
+                <div class="flex gap-4">
+                    <input type="number" id="edit-sujo" placeholder="Novo valor Total Sujo" class="w-full p-4 rounded-xl">
+                    <button onclick="salvarFinanceiroManual('sujo')" class="btn-gold px-6 rounded-xl">SALVAR</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="gold-card rounded-2xl overflow-hidden shadow-2xl">
+            <div class="bg-red-500 text-white p-4 font-bold orbitron text-center text-xs tracking-widest uppercase">Gerenciamento de Membros & Planilha</div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-black/80 text-yellow-500 orbitron text-[10px]">
+                        <tr>
+                            <th class="p-5">NICK</th>
+                            <th class="p-5">PASSAPORTE</th>
+                            <th class="p-5">CARGO</th>
+                            <th class="p-5">QUEM RECRUTOU</th>
+                            <th class="p-5 text-center">AÇÃO</th>
+                        </tr>
+                    </thead>
+                    <tbody id="corpo-tabela-admin" class="divide-y divide-white/5"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <main id="view-cadastro" class="hidden max-w-2xl mx-auto px-4 animate-view relative z-10">
         <button onclick="showView('dashboard')" class="text-yellow-500 mb-6 flex items-center gap-2 text-xs font-bold uppercase tracking-widest">
             ← Voltar ao Terminal
         </button>
@@ -208,7 +304,16 @@
                         <input type="number" id="rec-pass" placeholder="0000" required class="w-full p-4 rounded-xl">
                     </div>
                 </div>
-                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-[10px] text-gray-400 uppercase tracking-widest">Nome do Recrutador</label>
+                        <input type="text" id="rec-recrutador" placeholder="Nick do Recrutador" required class="w-full p-4 rounded-xl">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] text-gray-400 uppercase tracking-widest">Data do Recrutamento</label>
+                        <input type="date" id="rec-data-manual" required class="w-full p-4 rounded-xl text-white">
+                    </div>
+                </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-yellow-500/5 rounded-xl border border-yellow-500/10">
                     <div class="space-y-2">
                         <label class="text-[10px] text-yellow-500 uppercase tracking-widest font-bold">Valor Missão</label>
@@ -226,7 +331,6 @@
                         </select>
                     </div>
                 </div>
-
                 <div class="space-y-2">
                     <label class="text-[10px] text-gray-400 uppercase tracking-widest">Patente</label>
                     <select id="rec-cargo" class="w-full p-4 rounded-xl">
@@ -243,14 +347,14 @@
                 </div>
                 <div class="space-y-2">
                     <label class="text-[10px] text-gray-400 uppercase tracking-widest">Link da Imagem (Provas)</label>
-                    <input type="url" id="rec-img" value="" required class="w-full p-4 rounded-xl">
+                    <input type="url" id="rec-img" required class="w-full p-4 rounded-xl">
                 </div>
                 <button type="submit" class="w-full btn-gold py-5 rounded-xl text-lg mt-4">REALIZAR CADASTRO</button>
             </form>
         </div>
     </main>
 
-    <main id="view-historico" class="hidden max-w-4xl mx-auto px-4 animate-view">
+    <main id="view-historico" class="hidden max-w-4xl mx-auto px-4 animate-view relative z-10">
         <button onclick="showView('dashboard')" class="text-yellow-500 mb-6 font-bold text-xs uppercase">← Painel</button>
         <div class="gold-card p-6 rounded-2xl mb-6 border border-dashed border-yellow-500/50">
             <h3 class="text-yellow-500 orbitron text-xs mb-4">IMPORTAR DATABASE (EXCEL/CSV)</h3>
@@ -261,7 +365,7 @@
         <div id="lista-recrutados" class="space-y-4"></div>
     </main>
 
-    <main id="view-planilha" class="hidden max-w-7xl mx-auto px-4 animate-view">
+    <main id="view-planilha" class="hidden max-w-7xl mx-auto px-4 animate-view relative z-10">
         <div class="flex justify-between items-center mb-6">
             <button onclick="showView('dashboard')" class="text-yellow-500 font-bold text-xs uppercase">← Voltar</button>
             <div class="flex gap-2">
@@ -279,7 +383,6 @@
                             <th class="p-5 border-b border-yellow-500/10">PASSAPORTE</th>
                             <th class="p-5 border-b border-yellow-500/10">CARGO</th>
                             <th class="p-5 border-b border-yellow-500/10">RECRUTADOR</th>
-                            <th class="p-5 border-b border-yellow-500/10 text-center">AÇÃO</th>
                         </tr>
                     </thead>
                     <tbody id="corpo-tabela" class="divide-y divide-white/5"></tbody>
@@ -288,18 +391,18 @@
         </div>
     </main>
 
-    <main id="view-config" class="hidden max-w-2xl mx-auto px-4 animate-view">
+    <main id="view-config" class="hidden max-w-2xl mx-auto px-4 animate-view relative z-10">
         <button onclick="showView('dashboard')" class="text-yellow-500 mb-6 font-bold text-xs">← Voltar</button>
         <div class="gold-card p-8 rounded-2xl">
             <h2 class="text-xl font-bold text-yellow-500 orbitron mb-8 text-center uppercase">Webhooks de Integração</h2>
             <div class="space-y-6">
                 <div>
                     <label class="text-[10px] text-gray-500 uppercase font-bold ml-1">Webhook de Provas (GIF/IMG)</label>
-                    <input type="text" id="webhook-fotos" class="w-full p-4 rounded-xl mt-2" placeholder="https://discord.com/api/webhooks/...">
+                    <input type="text" id="webhook-fotos" class="w-full p-4 rounded-xl mt-2" placeholder="URL do Webhook">
                 </div>
                 <div>
-                    <label class="text-[10px] text-gray-400 uppercase font-bold ml-1 font-bold ml-1">Webhook de Lista Oficial</label>
-                    <input type="text" id="webhook-lista" class="w-full p-4 rounded-xl mt-2" placeholder="https://discord.com/api/webhooks/...">
+                    <label class="text-[10px] text-gray-400 uppercase font-bold ml-1">Webhook de Lista Oficial</label>
+                    <input type="text" id="webhook-lista" class="w-full p-4 rounded-xl mt-2" placeholder="URL do Webhook">
                 </div>
                 <button onclick="salvarWebhooks()" class="w-full btn-gold py-4 rounded-xl font-bold mt-4">SALVAR CONFIGURAÇÕES</button>
             </div>
@@ -307,15 +410,43 @@
     </main>
 
     <script>
+        const FUNDADOR_NICK = "Dallas Beiramar";
+        const FUNDADOR_PASS = "10946";
         const GIF_CARDS = "https://i.postimg.cc/qBjFc713/cards.gif";
         const BANDEIRA_GIF = "https://i.postimg.cc/qBjFc713/cards.gif"; 
         const FIREBASE_URL = "https://egito-ncrp-default-rtdb.firebaseio.com/membros.json";
+        const FIREBASE_FINANCE_URL = "https://egito-ncrp-default-rtdb.firebaseio.com/financeiro.json";
         const FIREBASE_MSG_URL = "https://egito-ncrp-default-rtdb.firebaseio.com/config/last_msg_id.json";
         
         let db = [];
+        let financeiroGlobal = { limpo: 169436500, sujo: 4400000 };
         let userLogado = null;
 
+        // --- EFEITOS VISUAIS ---
+        function createBullets() {
+            const container = document.getElementById('bullet-container');
+            for(let i = 0; i < 25; i++) {
+                let bullet = document.createElement('div');
+                bullet.className = 'floating-bullet';
+                bullet.style.left = Math.random() * 100 + 'vw';
+                bullet.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                bullet.style.animationDelay = Math.random() * 5 + 's';
+                container.appendChild(bullet);
+            }
+        }
+
+        window.addEventListener('click', (e) => {
+            let spark = document.createElement('div');
+            spark.className = 'click-spark';
+            spark.style.left = (e.pageX - 5) + 'px';
+            spark.style.top = (e.pageY - 5) + 'px';
+            document.body.appendChild(spark);
+            setTimeout(() => spark.remove(), 600);
+        });
+
+        // --- CORE SISTEMA ---
         async function inicializarSistema() {
+            createBullets();
             const salvo = JSON.parse(localStorage.getItem('eg_egito_remember'));
             if(salvo) {
                 document.getElementById('login-nick').value = salvo.nick;
@@ -332,6 +463,9 @@
                 const response = await fetch(FIREBASE_URL);
                 const data = await response.json();
                 db = data ? Object.keys(data).map(key => ({...data[key], firebaseId: key})) : [];
+                const resFin = await fetch(FIREBASE_FINANCE_URL);
+                const dataFin = await resFin.json();
+                if(dataFin) financeiroGlobal = dataFin;
                 updateStats();
                 calcularFinanceiro();
             } catch (e) { console.error("Erro ao carregar banco!"); }
@@ -349,17 +483,37 @@
             showView('dashboard');
         }
 
+        function abrirConfigAdmin() {
+            // LOGIN AUTOMÁTICO SE FOR O FUNDADOR
+            if (userLogado.nick === FUNDADOR_NICK && userLogado.pass === FUNDADOR_PASS) {
+                showView('admin');
+            } else {
+                const senha = prompt("DIGITE A SENHA DE ADMINISTRADOR:");
+                if(senha === "300820") {
+                    showView('admin');
+                } else {
+                    alert("SENHA INCORRETA! ACESSO NEGADO.");
+                }
+            }
+        }
+
         function showView(viewName) {
             document.querySelectorAll('main').forEach(v => v.classList.add('hidden'));
             const active = document.getElementById(`view-${viewName}`);
             active.classList.remove('hidden');
             active.classList.add('animate-view');
+            
             if(viewName === 'dashboard') {
                 updateStats();
                 calcularFinanceiro();
             }
             if(viewName === 'historico') renderHistorico();
             if(viewName === 'planilha') renderPlanilhaData();
+            if(viewName === 'admin') renderAdminData();
+            if(viewName === 'cadastro') {
+                document.getElementById('rec-data-manual').value = new Date().toISOString().split('T')[0];
+                document.getElementById('rec-recrutador').value = userLogado.nick;
+            }
         }
 
         function updateStats() {
@@ -379,22 +533,32 @@
         }
 
         function calcularFinanceiro() {
-            let totalLimpo = 0;
-            let totalSujo = 0;
-
+            let totalLimpo = financeiroGlobal.limpo;
+            let totalSujo = financeiroGlobal.sujo;
             db.forEach(m => {
                 if(m.valorFac) {
-                    if(m.tipoDinheiro === 'limpo') {
-                        totalLimpo += parseFloat(m.valorFac);
-                    } else {
-                        totalSujo += parseFloat(m.valorFac);
-                    }
+                    if(m.tipoDinheiro === 'limpo') totalLimpo += parseFloat(m.valorFac);
+                    else totalSujo += parseFloat(m.valorFac);
                 }
             });
-
             const format = (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
             document.getElementById('total-limpo').innerText = format(totalLimpo);
             document.getElementById('total-sujo').innerText = format(totalSujo);
+            if(document.getElementById('edit-limpo')) {
+                document.getElementById('edit-limpo').placeholder = `Atual: ${totalLimpo}`;
+                document.getElementById('edit-sujo').placeholder = `Atual: ${totalSujo}`;
+            }
+        }
+
+        async function salvarFinanceiroManual(tipo) {
+            const val = parseFloat(document.getElementById(`edit-${tipo}`).value);
+            if(isNaN(val)) return alert("Digite um valor válido");
+            let somaRegistros = 0;
+            db.forEach(m => { if(m.valorFac && m.tipoDinheiro === tipo) somaRegistros += parseFloat(m.valorFac); });
+            financeiroGlobal[tipo] = val - somaRegistros;
+            await fetch(FIREBASE_FINANCE_URL, { method: 'PUT', body: JSON.stringify(financeiroGlobal) });
+            alert("Financeiro Atualizado!");
+            calcularFinanceiro();
         }
 
         function renderHistorico() {
@@ -407,12 +571,11 @@
                         <div>
                             <p class="font-bold text-white orbitron text-sm">${r.nick}</p>
                             <p class="text-[10px] text-gray-500">ID #${r.pass} • ${r.cargo}</p>
-                            ${r.valorFac ? `<p class="text-[9px] text-green-500 font-bold">FAC: R$ ${parseFloat(r.valorFac).toLocaleString('pt-BR')} (${r.tipoDinheiro})</p>` : ''}
+                            <p class="text-[9px] text-gray-400">Recrutador: ${r.recrutador} • Data: ${r.data}</p>
                         </div>
                     </div>
-                    <div class="card-content flex gap-2">
+                    <div class="card-content">
                         <button onclick='enviarComprovante(${JSON.stringify(r)})' class="bg-yellow-500/10 text-yellow-500 px-4 py-2 rounded text-[10px] font-bold">PROVA</button>
-                        <button onclick="excluirMembro('${r.firebaseId}')" class="bg-red-500/10 text-red-500 px-4 py-2 rounded text-[10px] font-bold">DELETAR</button>
                     </div>
                 </div>
             `).join('');
@@ -426,8 +589,19 @@
                     <td class="p-5 text-yellow-500 font-bold">#${r.pass}</td>
                     <td class="p-5 text-xs text-gray-400">${r.cargo}</td>
                     <td class="p-5 text-xs text-gray-500">${r.recrutador}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderAdminData() {
+            document.getElementById('corpo-tabela-admin').innerHTML = db.map(r => `
+                <tr class="hover:bg-white/5 transition-colors">
+                    <td class="p-5 font-bold text-white uppercase text-xs">${r.nick}</td>
+                    <td class="p-5 text-yellow-500 font-bold">#${r.pass}</td>
+                    <td class="p-5 text-xs text-gray-400">${r.cargo}</td>
+                    <td class="p-5 text-xs text-gray-500">${r.recrutador}</td>
                     <td class="p-5 text-center">
-                         <button onclick="excluirMembro('${r.firebaseId}')" class="text-red-500 opacity-50 hover:opacity-100">X</button>
+                         <button onclick="excluirMembro('${r.firebaseId}')" class="bg-red-500 text-white px-3 py-1 rounded text-[10px] font-bold hover:bg-red-600 transition-all">REMOVER</button>
                     </td>
                 </tr>
             `).join('');
@@ -449,7 +623,7 @@
                             cargo: p.Cargo || p.cargo || "「ᴄʀɪᴀ」",
                             recrutador: p.Recrutador || "Sistema",
                             img: GIF_CARDS,
-                            data: p.Data || new Date().toLocaleString('pt-BR')
+                            data: p.Data || new Date().toLocaleDateString('pt-BR')
                         };
                         await fetch(FIREBASE_URL, { method: 'POST', body: JSON.stringify(novo) });
                     }
@@ -463,11 +637,11 @@
 
         document.getElementById('form-recrutamento').onsubmit = async function(e) {
             e.preventDefault();
-            
             const vTotal = parseFloat(document.getElementById('rec-valor-total').value);
             const vRecrutador = parseFloat(document.getElementById('rec-valor-recrutador').value);
             const vFac = vTotal - vRecrutador;
-
+            const dataInput = document.getElementById('rec-data-manual').value.split('-');
+            const dataFormatada = `${dataInput[2]}/${dataInput[1]}/${dataInput[0]}`;
             const novo = {
                 nick: document.getElementById('rec-nick').value,
                 pass: document.getElementById('rec-pass').value,
@@ -477,10 +651,9 @@
                 valorMissao: vTotal,
                 valorRecrutador: vRecrutador,
                 valorFac: vFac,
-                recrutador: userLogado.nick,
-                data: new Date().toLocaleString('pt-BR')
+                recrutador: document.getElementById('rec-recrutador').value,
+                data: dataFormatada
             };
-
             await fetch(FIREBASE_URL, { method: 'POST', body: JSON.stringify(novo) });
             alert(`Membro Registrado! Valor para Fac: R$ ${vFac.toLocaleString('pt-BR')}`);
             await carregarDadosGlobais();
@@ -488,11 +661,10 @@
         };
 
         async function excluirMembro(firebaseId) {
-            if(confirm("Deletar registro do banco global?")) {
+            if(confirm("Deseja remover este membro permanentemente?")) {
                 await fetch(`https://egito-ncrp-default-rtdb.firebaseio.com/membros/${firebaseId}.json`, { method: 'DELETE' });
                 await carregarDadosGlobais();
-                renderHistorico();
-                renderPlanilhaData();
+                renderAdminData();
             }
         }
 
@@ -501,13 +673,13 @@
             localStorage.setItem('eg_webhook_lista', document.getElementById('webhook-lista').value);
             alert("SISTEMA: Configurações salvas!");
             showView('dashboard');
-        }
+         }
 
         async function enviarComprovante(r) {
             const url = localStorage.getItem('eg_webhook_fotos');
             if(!url) return alert("Erro: Webhook não configurado!");
 
-            const corpoMensagem = 
+            const corpoMensagem = `...`;}
 ` COMPROVANTE DE RECRUTAMENTO EG EGITO NCRP 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ **${r.nick.toUpperCase()}** ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  DADOS DO RECRUTADO
@@ -522,8 +694,8 @@
 🏷️ Tipo: ${r.tipoDinheiro === 'limpo' ? '💵 Dinheiro Limpo' : '💸 Dinheiro Sujo'}
 
  DADOS DO RECRUTADOR
-🏛️ Nick: ${userLogado.nick}
-🎫 Passaporte: #${userLogado.pass}
+🏛️ Nick: ${r.recrutador}
+📅 Data: ${r.data}
 
  LINK DO COMPROVANTE
  [Clique aqui para ver o comprovante](${r.img})
@@ -538,70 +710,33 @@
                     image: { url: BANDEIRA_GIF },
                     thumbnail: { url: r.img },
                     footer: { 
-                        text: `🔥 EG Egito NCRP | Registrado por ${userLogado.nick} | 📅 ${r.data || new Date().toLocaleString('pt-BR')}` 
+                        text: `🔥 EG Egito NCRP | Registrado por ${userLogado.nick} | 📅 ${r.data}` 
                     }
                 }]
             };
-
-            fetch(url, { 
-                method: 'POST', 
-                headers: {'Content-Type': 'application/json'}, 
-                body: JSON.stringify(embed) 
-            })
-            .then(() => alert("COMPROVANTE ENVIADO COM SUCESSO!"))
-            .catch(() => alert("Erro ao conectar com o Discord."));
-        }
 
         async function enviarListaDiscord() {
             const url = localStorage.getItem('eg_webhook_lista');
             if(!url) return alert("Erro: Webhook ausente!");
-
             let lastMsgId = null;
-            try {
-                const resId = await fetch(FIREBASE_MSG_URL);
-                lastMsgId = await resId.json();
-            } catch (e) {}
-
+            try { const resId = await fetch(FIREBASE_MSG_URL); lastMsgId = await resId.json(); } catch (e) {}
             let listaTexto = db.map(m => `> 🇪🇬 **${m.nick}** | ID: \`${m.pass}\` | ${m.cargo}`).join('\n');
-            
-            const embedData = {
-                username: "EG EGITO NCRP",
-                avatar_url: GIF_CARDS,
-                embeds: [{
-                    title: "🦅 LISTA DE EFETIVO ATUALIZADA",
-                    description: `**TOTAL DE MEMBROS:** \`${db.length}\`\n\n${listaTexto}`,
-                    color: 16760868,
-                    image: { url: BANDEIRA_GIF }
-                }]
-            };
-
+            const embedData = { username: "EG EGITO NCRP", avatar_url: GIF_CARDS, embeds: [{ title: "🦅 LISTA DE EFETIVO ATUALIZADA", description: `**TOTAL:** \`${db.length}\`\n\n${listaTexto}`, color: 16760868 }] };
             let endpoint = lastMsgId ? `${url}/messages/${lastMsgId}` : `${url}?wait=true`;
             let metodo = lastMsgId ? 'PATCH' : 'POST';
-
             try {
-                const response = await fetch(endpoint, {
-                    method: metodo,
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(embedData)
-                });
-
+                const response = await fetch(endpoint, { method: metodo, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(embedData) });
                 if (response.ok) {
                     if (!lastMsgId) {
                         const data = await response.json();
                         await fetch(FIREBASE_MSG_URL, { method: 'PUT', body: JSON.stringify(data.id) });
-                        alert("LISTA CRIADA E SINCRONIZADA!");
-                    } else {
-                        alert("LISTA ATUALIZADA NO DISCORD!");
                     }
+                    alert("DISCORD ATUALIZADO!");
                 } else if (response.status === 404) {
                     await fetch(FIREBASE_MSG_URL, { method: 'DELETE' });
                     return enviarListaDiscord();
-                } else {
-                    alert("Erro ao sincronizar. Verifique o Webhook.");
                 }
-            } catch (error) {
-                alert("Erro de conexão.");
-            }
+            } catch (error) { alert("Erro de conexão."); }
         }
 
         function baixarExcel() {

@@ -24,7 +24,6 @@
             overflow-x: hidden;
         }
 
-        /* EFEITO DE BALAS FLUTUANDO AO FUNDO */
         .bullet-bg {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -46,23 +45,6 @@
         @keyframes fall {
             from { transform: translateY(-100px) rotate(45deg); }
             to { transform: translateY(110vh) rotate(45deg); }
-        }
-
-        /* EFEITO DE IMPACTO AO CLICAR */
-        .click-spark {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background: var(--gold);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 9999;
-            animation: spark-anim 0.6s ease-out forwards;
-        }
-
-        @keyframes spark-anim {
-            0% { transform: scale(1); opacity: 1; }
-            100% { transform: scale(4); opacity: 0; box-shadow: 0 0 20px var(--gold); }
         }
 
         .bg-overlay {
@@ -132,7 +114,8 @@
         .orbitron { font-family: 'Orbitron', sans-serif; }
 
         .status-glow {
-            width: 8px; height: 8px;
+            width: 8px;
+            height: 8px;
             background: #22c55e;
             border-radius: 50%;
             box-shadow: 0 0 10px #22c55e;
@@ -144,19 +127,16 @@
     <audio id="bg-music" loop>
         <source src="https://cdn.discordapp.com/attachments/1431057945713705091/1465052309179334769/Dallas_beiramar_Prod.Andrade_3.mp3?ex=6977b3c9&is=69766249&hm=05addd2074d35a838fe92ae597d2cdbeead08b6b1c5668376b588087cf7d10eb&" type="audio/mpeg">
     </audio>
-<header id="main-header" class="hidden flex flex-col md:flex-row justify-between items-center mb-8 bg-black/80 p-6 border-b border-yellow-500/30 backdrop-blur-lg z-50">
-    <div class="flex items-center gap-4">
-        <button onclick="toggleMute()" id="btn-audio" class="border border-yellow-500/50 text-yellow-500 hover:bg-yellow-500 hover:text-white px-4 py-2 rounded-full text-[10px] font-bold transition-all">
-            🔈 MUDO
-        </button>
-        
-        <button onclick="logout()" class="mt-4 md:mt-0 border border-red-500/50 text-red-500 hover:bg-red-500 hover:text-white px-8 py-2 rounded-full text-xs font-bold transition-all">LOGOUT</button>
-    </div>
-</header>
 
     <div class="bg-overlay"></div>
     <div class="bullet-bg" id="bullet-container"></div>
+    
     <header id="main-header" class="hidden flex flex-col md:flex-row justify-between items-center mb-8 bg-black/80 p-6 border-b border-yellow-500/30 backdrop-blur-lg z-50">
+        <div class="flex items-center gap-4">
+            <button onclick="toggleMute()" id="btn-audio" class="border border-yellow-500/50 text-yellow-500 hover:bg-yellow-500 hover:text-white px-4 py-2 rounded-full text-[10px] font-bold transition-all">
+                🔈 MUDO
+            </button>
+        </div>
         <div class="text-center md:text-left">
             <h1 class="text-3xl font-bold text-yellow-500 orbitron tracking-tighter">EG EGITO <span class="text-white">NCRP</span></h1>
             <div class="flex items-center gap-2 justify-center md:justify-start">
@@ -215,7 +195,7 @@
             </div>
             <div onclick="showView('planilha')" class="gold-card card-with-gif rounded-2xl p-6 cursor-pointer">
                 <div class="card-content">
-                    <h3 class="text-yellow-500 font-bold orbitron text-xs mb-1">LISTA DE APROADOS</h3>
+                    <h3 class="text-yellow-500 font-bold orbitron text-xs mb-1">LISTA DE APROVADOS</h3>
                     <p id="count-membros" class="text-2xl font-bold text-white mb-2">0 Membros</p>
                     <span class="text-[9px] text-yellow-500 animate-pulse font-bold">ABRIR LISTA DE APROVADOS</span>
                 </div>
@@ -405,11 +385,11 @@
             <div class="space-y-6">
                 <div>
                     <label class="text-[10px] text-gray-500 uppercase font-bold ml-1">Envio de Provas (GIF/IMG)</label>
-                    <input type="text" id="webhook-fotos" class="w-full p-4 rounded-xl mt-2" placeholder="https://discord.com/api/webhooks/1454246068043911291/8VOZwTT_HJj9FfOq_-uJqfEHs7mHHx_4lIaBuIMJGaeedfO-iKfkmpb7zxZkzQZIZve7">
+                    <input type="text" id="webhook-fotos" class="w-full p-4 rounded-xl mt-2" placeholder="URL do Webhook">
                 </div>
                 <div>
                     <label class="text-[10px] text-gray-400 uppercase font-bold ml-1">Lista Dos Aprovados</label>
-                    <input type="text" id="webhook-lista" class="w-full p-4 rounded-xl mt-2" placeholder="https://discord.com/api/webhooks/1457068029157314792/y6aS0LVYKKzqzVw-FCP-y9Zg_AyIarXM8XOssk0MwTZcSpZPMlOkdDhSpWte1KqKKYjH">
+                    <input type="text" id="webhook-lista" class="w-full p-4 rounded-xl mt-2" placeholder="URL do Webhook">
                 </div>
                 <button onclick="salvarWebhooks()" class="w-full btn-gold py-4 rounded-xl font-bold mt-4">SALVAR CONFIGURAÇÕES</button>
             </div>
@@ -430,21 +410,19 @@
         let userLogado = null;
 
         function toggleMute() {
-    const musica = document.getElementById('bg-music');
-    const btn = document.getElementById('btn-audio');
-    
-    if (musica.paused) {
-        musica.play();
-        btn.innerText = "🔊 TOCANDO";
-        btn.classList.add('bg-yellow-500', 'text-black');
-    } else {
-        musica.pause();
-        btn.innerText = "🔈 MUDO";
-        btn.classList.remove('bg-yellow-500', 'text-black');
-    }
-}
+            const musica = document.getElementById('bg-music');
+            const btn = document.getElementById('btn-audio');
+            if (musica.paused) {
+                musica.play();
+                btn.innerText = "🔊 TOCANDO";
+                btn.classList.add('bg-yellow-500', 'text-black');
+            } else {
+                musica.pause();
+                btn.innerText = "🔈 MUDO";
+                btn.classList.remove('bg-yellow-500', 'text-black');
+            }
+        }
 
-        // --- EFEITOS VISUAIS ---
         function createBullets() {
             const container = document.getElementById('bullet-container');
             for(let i = 0; i < 25; i++) {
@@ -457,16 +435,6 @@
             }
         }
 
-        window.addEventListener('click', (e) => {
-            let spark = document.createElement('div');
-            spark.className = 'click-spark';
-            spark.style.left = (e.pageX - 5) + 'px';
-            spark.style.top = (e.pageY - 5) + 'px';
-            document.body.appendChild(spark);
-            setTimeout(() => spark.remove(), 600);
-        });
-
-        // --- CORE SISTEMA ---
         async function inicializarSistema() {
             createBullets();
             const salvo = JSON.parse(localStorage.getItem('eg_egito_remember'));
@@ -494,25 +462,20 @@
         }
 
         function login() {
-    const nick = document.getElementById('login-nick').value;
-    const pass = document.getElementById('login-pass').value;
-    const perfil = document.getElementById('login-perfil').value;
-    
-    if(!nick || !pass) return alert("Erro: Identifique-se!");
-
-    // ADICIONE ESTA LINHA ABAIXO PARA TOCAR A MÚSICA
-    document.getElementById('bg-music').play().catch(e => console.log("Aguardando interação para áudio"));
-
-    localStorage.setItem('eg_egito_remember', JSON.stringify({nick, pass, perfil}));
-    userLogado = { nick, pass, perfil };
-    document.getElementById('user-welcome').innerText = `${nick} // ${perfil}`;
-    document.getElementById('main-header').classList.remove('hidden');
-    showView('dashboard');
-
+            const nick = document.getElementById('login-nick').value;
+            const pass = document.getElementById('login-pass').value;
+            const perfil = document.getElementById('login-perfil').value;
+            
+            if(!nick || !pass) return alert("Erro: Identifique-se!");
+            document.getElementById('bg-music').play().catch(e => console.log("Aguardando interação para áudio"));
+            localStorage.setItem('eg_egito_remember', JSON.stringify({nick, pass, perfil}));
+            userLogado = { nick, pass, perfil };
+            document.getElementById('user-welcome').innerText = `${nick} // ${perfil}`;
+            document.getElementById('main-header').classList.remove('hidden');
+            showView('dashboard');
         }
 
         function abrirConfigAdmin() {
-            // LOGIN AUTOMÁTICO SE FOR O FUNDADOR
             if (userLogado.nick === FUNDADOR_NICK && userLogado.pass === FUNDADOR_PASS) {
                 showView('admin');
             } else {
@@ -592,7 +555,7 @@
         function renderHistorico() {
             const container = document.getElementById('lista-recrutados');
             const data = [...db].reverse();
-            container.innerHTML = data.map(r => `
+            container.innerHTML = data.map((r, index) => `
                 <div class="gold-card card-with-gif p-5 rounded-2xl flex justify-between items-center">
                     <div class="card-content flex items-center gap-4">
                         <img src="${r.img || GIF_CARDS}" class="w-12 h-12 rounded-lg border border-yellow-500/50 object-cover">
@@ -603,7 +566,7 @@
                         </div>
                     </div>
                     <div class="card-content">
-                        <button onclick='enviarComprovante(${JSON.stringify(r)})' class="bg-yellow-500/10 text-yellow-500 px-4 py-2 rounded text-[10px] font-bold">PROVA</button>
+                        <button onclick='enviarComprovante(${index})' class="bg-yellow-500/10 text-yellow-500 px-4 py-2 rounded text-[10px] font-bold">PROVA</button>
                     </div>
                 </div>
             `).join('');
@@ -703,12 +666,12 @@
             showView('dashboard');
          }
 
-        async function enviarComprovante(r) {
+        async function enviarComprovante(index) {
+            const r = [...db].reverse()[index];
             const url = localStorage.getItem('eg_webhook_fotos');
             if(!url) return alert("Erro: Webhook não configurado!");
 
-            const corpoMensagem = `...`;}
-` COMPROVANTE DE RECRUTAMENTO EG EGITO NCRP 
+            const corpoMensagem = ` COMPROVANTE DE RECRUTAMENTO EG EGITO NCRP 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ **${r.nick.toUpperCase()}** ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  DADOS DO RECRUTADO
 🏛️ Nick: ${r.nick}
@@ -728,7 +691,6 @@
  LINK DO COMPROVANTE
  [Clique aqui para ver o comprovante](${r.img})
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
-
             const embed = {
                 username: "EG EGITO NCRP",
                 avatar_url: GIF_CARDS,
@@ -742,6 +704,12 @@
                     }
                 }]
             };
+            try {
+                const res = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(embed)});
+                if(res.ok) alert("Comprovante enviado!");
+                else alert("Erro ao enviar para o Discord.");
+            } catch (e) { alert("Erro de conexão."); }
+        }
 
         async function enviarListaDiscord() {
             const url = localStorage.getItem('eg_webhook_lista');

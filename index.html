@@ -713,26 +713,59 @@
 
         async function enviarListaDiscord() {
             const url = localStorage.getItem('eg_webhook_lista');
-            if(!url) return alert("Erro: Webhook ausente!");
+            if (!url) return alert("Erro: Webhook ausente!");
+
             let lastMsgId = null;
-            try { const resId = await fetch(FIREBASE_MSG_URL); lastMsgId = await resId.json(); } catch (e) {}
-            let listaTexto = db.map(m => `> 🇪🇬 **${m.nick}** | ID: \`${m.pass}\` | ${m.cargo}`).join('\n');
-            const embedData = { username: "EG EGITO NCRP", avatar_url: GIF_CARDS, embeds: [{ title: "🦅 LISTA DE EFETIVO ATUALIZADA", description: `**TOTAL:** \`${db.length}\`\n\n${listaTexto}`, color: 16760868 }] };
+            try { 
+                const resId = await fetch(FIREBASE_MSG_URL); 
+                lastMsgId = await resId.json(); 
+            } catch (e) {}
+
+            // Divide a lista em grupos de 10
+            const tamanhoParte = 10;
+            const embeds = [];
+
+            for (let i = 0; i < db.length; i += tamanhoParte) {
+                const parteMembros = db.slice(i, i + tamanhoParte);
+                let listaTexto = parteMembros.map(m => `> 🇪🇬 **${m.nick}** | ID: \`${m.pass}\` | ${m.cargo}`).join('\n');
+                
+                embeds.push({
+                    title: i === 0 ? "🦅 LISTA DE EFETIVO ATUALIZADA" : "🦅 CONTINUAÇÃO DA LISTA",
+                    description: i === 0 ? `**TOTAL GERAL:** \`${db.length}\`\n\n${listaTexto}` : listaTexto,
+                    color: 16760868,
+                    footer: { text: `Parte ${Math.floor(i / tamanhoParte) + 1} | EG Egito NCRP` }
+                });
+            }
+
+            const embedData = { 
+                username: "EG EGITO NCRP", 
+                avatar_url: GIF_CARDS, 
+                embeds: embeds 
+            };
+
             let endpoint = lastMsgId ? `${url}/messages/${lastMsgId}` : `${url}?wait=true`;
             let metodo = lastMsgId ? 'PATCH' : 'POST';
+
             try {
-                const response = await fetch(endpoint, { method: metodo, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(embedData) });
+                const response = await fetch(endpoint, { 
+                    method: metodo, 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify(embedData) 
+                });
+
                 if (response.ok) {
                     if (!lastMsgId) {
                         const data = await response.json();
                         await fetch(FIREBASE_MSG_URL, { method: 'PUT', body: JSON.stringify(data.id) });
                     }
-                    alert("DISCORD ATUALIZADO!");
+                    alert("DISCORD ATUALIZADO EM PARTES!");
                 } else if (response.status === 404) {
                     await fetch(FIREBASE_MSG_URL, { method: 'DELETE' });
                     return enviarListaDiscord();
                 }
-            } catch (error) { alert("Erro de conexão."); }
+            } catch (error) { 
+                alert("Erro de conexão."); 
+            }
         }
 
         function baixarExcel() {
